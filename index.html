@@ -18,12 +18,34 @@
         .header-stat .label { font-size: 12px; opacity: 0.7; }
         .last-update { font-size: 11px; opacity: 0.6; margin-top: 10px; }
         .lang-switcher { display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px; }
-        .refresh-btn { background: rgba(96,165,250,0.2); border: 1px solid #3b82f6; color: #60a5fa; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: all 0.3s; }
-        .refresh-btn:hover { background: #3b82f6; color: white; transform: rotate(180deg); }
-        .refresh-btn.loading { animation: spin 1s linear infinite; }
-        .auto-refresh { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; font-size: 12px; }
-        .auto-refresh label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
-        .auto-refresh select { background: #1e3a5f; border: 1px solid #2d4a6f; color: #e0e6ed; padding: 3px 5px; border-radius: 4px; font-size: 11px; }
+        .refresh-panel { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, rgba(30,58,95,0.8) 0%, rgba(22,45,74,0.8) 100%); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(96,165,250,0.3); backdrop-filter: blur(10px); }
+        .refresh-btn { position: relative; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; color: white; width: 44px; height: 44px; border-radius: 14px; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(59,130,246,0.4), inset 0 1px 0 rgba(255,255,255,0.2); overflow: hidden; }
+        .refresh-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.5s ease; }
+        .refresh-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(59,130,246,0.5), inset 0 1px 0 rgba(255,255,255,0.3); }
+        .refresh-btn:hover::before { left: 100%; }
+        .refresh-btn:active { transform: translateY(-1px) scale(0.98); }
+        .refresh-btn .refresh-icon { width: 24px; height: 24px; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .refresh-btn:hover .refresh-icon { transform: rotate(180deg); }
+        .refresh-btn.loading { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 20px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.2); }
+        .refresh-btn.loading .refresh-icon { animation: spin-smooth 0.8s linear infinite; }
+        @keyframes spin-smooth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .refresh-btn.success::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 14px; animation: ripple 0.6s ease-out; }
+        @keyframes ripple { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); } 100% { box-shadow: 0 0 0 20px rgba(74, 222, 128, 0); } }
+        .auto-refresh-toggle { display: flex; align-items: center; gap: 10px; }
+        .toggle-switch { position: relative; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #1e3a5f; border-radius: 24px; transition: 0.3s; border: 1px solid #2d4a6f; }
+        .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background: #6b7280; border-radius: 50%; transition: 0.3s; }
+        .toggle-switch input:checked + .toggle-slider { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-color: #3b82f6; }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); background: white; }
+        .interval-select { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); border: 1px solid #2d4a6f; color: #e0e6ed; padding: 6px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.3s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2360a5fa' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+        .interval-select:hover { border-color: #3b82f6; }
+        .interval-select:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 2px rgba(96,165,250,0.2); }
+        .refresh-label { font-size: 12px; color: #9ca3af; font-weight: 500; }
+        .refresh-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #6b7280; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #6b7280; }
+        .status-dot.active { background: #4ade80; animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .lang-btn { padding: 8px 12px; border: none; background: transparent; color: #9ca3af; cursor: pointer; border-radius: 6px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
         .lang-btn:hover { background: rgba(255,255,255,0.1); }
         .lang-btn.active { background: #3b82f6; color: white; }
@@ -202,15 +224,30 @@
             <div class="last-update" id="last-update"></div>
         </div>
         <div class="header-right">
-            <button class="refresh-btn" onclick="refreshData()" title="Обновить данные">🔄</button>
-            <div class="auto-refresh">
-                <label><input type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefresh()"> <span data-i18n="autoRefresh">Авто</span></label>
-                <select id="refresh-interval" onchange="setRefreshInterval()">
+            <div class="refresh-panel">
+                <button class="refresh-btn" onclick="refreshData()" title="Обновить данные">
+                    <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                </button>
+                <div class="auto-refresh-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefresh()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="refresh-label" data-i18n="autoRefresh">Авто</span>
+                </div>
+                <select class="interval-select" id="refresh-interval" onchange="setRefreshInterval()">
                     <option value="1">1 мин</option>
                     <option value="5" selected>5 мин</option>
                     <option value="15">15 мин</option>
                     <option value="30">30 мин</option>
                 </select>
+                <div class="refresh-status">
+                    <span class="status-dot" id="refresh-status-dot"></span>
+                    <span id="refresh-status-text">—</span>
+                </div>
             </div>
             <div class="lang-switcher">
                 <button class="lang-btn active" data-lang="ru">RU</button>
@@ -300,9 +337,18 @@ async function refreshData() {
     if (isRefreshing) return;
     isRefreshing = true;
     const btn = document.querySelector('.refresh-btn');
+    const statusDot = document.getElementById('refresh-status-dot');
+    const statusText = document.getElementById('refresh-status-text');
     btn.classList.add('loading');
+    statusText.textContent = currentLang === 'ru' ? 'Загрузка...' : currentLang === 'tr' ? 'Yükleniyor...' : 'Loading...';
     try {
         await loadData();
+        const now = new Date();
+        statusText.textContent = now.toLocaleTimeString(currentLang === 'ru' ? 'ru-RU' : currentLang === 'tr' ? 'tr-TR' : 'en-US', {hour: '2-digit', minute: '2-digit'});
+        btn.classList.add('success');
+        setTimeout(() => btn.classList.remove('success'), 600);
+    } catch(e) {
+        statusText.textContent = currentLang === 'ru' ? 'Ошибка' : currentLang === 'tr' ? 'Hata' : 'Error';
     } finally {
         isRefreshing = false;
         btn.classList.remove('loading');
@@ -331,6 +377,7 @@ function setRefreshInterval() {
 function startAutoRefresh() {
     const minutes = parseInt(document.getElementById('refresh-interval').value) || 5;
     autoRefreshTimer = setInterval(refreshData, minutes * 60 * 1000);
+    document.getElementById('refresh-status-dot').classList.add('active');
     console.log('Auto-refresh started: every ' + minutes + ' minutes');
 }
 
@@ -338,6 +385,7 @@ function stopAutoRefresh() {
     if (autoRefreshTimer) {
         clearInterval(autoRefreshTimer);
         autoRefreshTimer = null;
+        document.getElementById('refresh-status-dot').classList.remove('active');
         console.log('Auto-refresh stopped');
     }
 }
