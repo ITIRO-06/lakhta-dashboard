@@ -38,9 +38,11 @@
         .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background: #6b7280; border-radius: 50%; transition: 0.3s; }
         .toggle-switch input:checked + .toggle-slider { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-color: #3b82f6; }
         .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); background: white; }
-        .interval-select { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); border: 1px solid #2d4a6f; color: #e0e6ed; padding: 6px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.3s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2360a5fa' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
-        .interval-select:hover { border-color: #3b82f6; }
-        .interval-select:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 2px rgba(96,165,250,0.2); }
+        .interval-select { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); border: 1px solid #2d4a6f; color: #e0e6ed; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.3s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2360a5fa' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+        .interval-select:hover { border-color: #3b82f6; background: linear-gradient(135deg, #243f69 0%, #1a3654 100%); }
+        .interval-select:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.25); }
+        .interval-select option { background: #0f1d2f; color: #e0e6ed; padding: 12px; border: none; }
+        .interval-select option:hover, .interval-select option:focus, .interval-select option:checked { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: #ffffff; }
         .refresh-label { font-size: 12px; color: #9ca3af; font-weight: 500; }
         .refresh-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #6b7280; }
         .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #6b7280; }
