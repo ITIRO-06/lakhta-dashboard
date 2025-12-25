@@ -18,6 +18,12 @@
         .header-stat .label { font-size: 12px; opacity: 0.7; }
         .last-update { font-size: 11px; opacity: 0.6; margin-top: 10px; }
         .lang-switcher { display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px; }
+        .refresh-btn { background: rgba(96,165,250,0.2); border: 1px solid #3b82f6; color: #60a5fa; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: all 0.3s; }
+        .refresh-btn:hover { background: #3b82f6; color: white; transform: rotate(180deg); }
+        .refresh-btn.loading { animation: spin 1s linear infinite; }
+        .auto-refresh { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; font-size: 12px; }
+        .auto-refresh label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .auto-refresh select { background: #1e3a5f; border: 1px solid #2d4a6f; color: #e0e6ed; padding: 3px 5px; border-radius: 4px; font-size: 11px; }
         .lang-btn { padding: 8px 12px; border: none; background: transparent; color: #9ca3af; cursor: pointer; border-radius: 6px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
         .lang-btn:hover { background: rgba(255,255,255,0.1); }
         .lang-btn.active { background: #3b82f6; color: white; }
@@ -196,6 +202,16 @@
             <div class="last-update" id="last-update"></div>
         </div>
         <div class="header-right">
+            <button class="refresh-btn" onclick="refreshData()" title="Обновить данные">🔄</button>
+            <div class="auto-refresh">
+                <label><input type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefresh()"> <span data-i18n="autoRefresh">Авто</span></label>
+                <select id="refresh-interval" onchange="setRefreshInterval()">
+                    <option value="1">1 мин</option>
+                    <option value="5" selected>5 мин</option>
+                    <option value="15">15 мин</option>
+                    <option value="30">30 мин</option>
+                </select>
+            </div>
             <div class="lang-switcher">
                 <button class="lang-btn active" data-lang="ru">RU</button>
                 <button class="lang-btn" data-lang="en">EN</button>
@@ -277,6 +293,63 @@ function parseCSV(csv) {
         return row;
     }).filter(r => Object.values(r).some(v => v));
 }
+let autoRefreshTimer = null;
+let isRefreshing = false;
+
+async function refreshData() {
+    if (isRefreshing) return;
+    isRefreshing = true;
+    const btn = document.querySelector('.refresh-btn');
+    btn.classList.add('loading');
+    try {
+        await loadData();
+    } finally {
+        isRefreshing = false;
+        btn.classList.remove('loading');
+    }
+}
+
+function toggleAutoRefresh() {
+    const enabled = document.getElementById('auto-refresh-toggle').checked;
+    localStorage.setItem('autoRefreshEnabled', enabled);
+    if (enabled) {
+        startAutoRefresh();
+    } else {
+        stopAutoRefresh();
+    }
+}
+
+function setRefreshInterval() {
+    const interval = document.getElementById('refresh-interval').value;
+    localStorage.setItem('refreshInterval', interval);
+    if (document.getElementById('auto-refresh-toggle').checked) {
+        stopAutoRefresh();
+        startAutoRefresh();
+    }
+}
+
+function startAutoRefresh() {
+    const minutes = parseInt(document.getElementById('refresh-interval').value) || 5;
+    autoRefreshTimer = setInterval(refreshData, minutes * 60 * 1000);
+    console.log('Auto-refresh started: every ' + minutes + ' minutes');
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+        console.log('Auto-refresh stopped');
+    }
+}
+
+function initAutoRefresh() {
+    const enabled = localStorage.getItem('autoRefreshEnabled') === 'true';
+    const interval = localStorage.getItem('refreshInterval') || '5';
+    document.getElementById('auto-refresh-toggle').checked = enabled;
+    document.getElementById('refresh-interval').value = interval;
+    if (enabled) startAutoRefresh();
+}
+
 async function loadData() {
     const SHEET_ID = "1w-4sNcYkshJ6WVi-WpWA3Q9oXQ8ldgg71R3ac39IueU";
     const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
@@ -516,6 +589,7 @@ function switchToPage(pageId) {
 document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', () => switchToPage(tab.dataset.page)));
 updateTranslations();
 loadData();
+initAutoRefresh();
 </script>
 </body>
 </html>
