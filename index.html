@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лахта Центр - Мониторинг тестовых свай</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a1628; color: #e0e6ed; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1a365d 0%, #2d5a87 100%); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); flex-wrap: wrap; gap: 15px; }
+        .header-left h1 { font-size: 28px; font-weight: 600; }
+        .header-left .subtitle { font-size: 14px; opacity: 0.8; margin-top: 5px; }
+        .header-right { display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
+        .header-stats { display: flex; gap: 30px; flex-wrap: wrap; }
+        .header-stat { text-align: center; }
+        .header-stat .value { font-size: 32px; font-weight: bold; color: #60a5fa; }
+        .header-stat .label { font-size: 12px; opacity: 0.7; }
+        .last-update { font-size: 11px; opacity: 0.6; margin-top: 10px; }
+        .lang-switcher { display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px; }
+        .lang-btn { padding: 8px 12px; border: none; background: transparent; color: #9ca3af; cursor: pointer; border-radius: 6px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .lang-btn:hover { background: rgba(255,255,255,0.1); }
+        .lang-btn.active { background: #3b82f6; color: white; }
+        .nav-tabs { display: flex; background: #142238; padding: 0 40px; border-bottom: 1px solid #2d4a6f; overflow-x: auto; }
+        .nav-tab { padding: 15px 25px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; font-weight: 500; white-space: nowrap; }
+        .nav-tab:hover { background: rgba(96,165,250,0.1); }
+        .nav-tab.active { border-bottom-color: #60a5fa; background: rgba(96,165,250,0.15); color: #60a5fa; }
+        .content { padding: 30px 40px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .loading { text-align: center; padding: 50px; font-size: 18px; color: #60a5fa; }
+        .loading-spinner { border: 4px solid #1e3a5f; border-top: 4px solid #60a5fa; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-message { text-align: center; padding: 50px; color: #f87171; }
+        .overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); border-radius: 12px; padding: 25px; border: 1px solid #2d4a6f; }
+        .stat-card .icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 15px; }
+        .stat-card .icon.blue { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .stat-card .icon.green { background: rgba(34,197,94,0.2); color: #4ade80; }
+        .stat-card .icon.yellow { background: rgba(234,179,8,0.2); color: #facc15; }
+        .stat-card .icon.red { background: rgba(239,68,68,0.2); color: #f87171; }
+        .stat-card .value { font-size: 36px; font-weight: bold; margin-bottom: 5px; }
+        .stat-card .label { font-size: 14px; opacity: 0.7; }
+        .stat-card .progress-bar { height: 6px; background: #0d1b2a; border-radius: 3px; margin-top: 15px; overflow: hidden; }
+        .stat-card .progress-fill { height: 100%; border-radius: 3px; }
+        .charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .chart-card { background: #142238; border-radius: 12px; padding: 25px; border: 1px solid #2d4a6f; }
+        .chart-card h3 { margin-bottom: 20px; font-size: 16px; }
+        .area-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .area-card { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); border-radius: 12px; padding: 20px; border: 1px solid #2d4a6f; cursor: pointer; transition: all 0.3s; }
+        .area-card:hover { transform: translateY(-5px); border-color: #60a5fa; box-shadow: 0 10px 30px rgba(96,165,250,0.2); }
+        .area-card .area-name { font-size: 18px; font-weight: 600; margin-bottom: 15px; }
+        .area-card .area-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .area-card .area-stat { text-align: center; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; }
+        .area-card .area-stat .value { font-size: 24px; font-weight: bold; }
+        .area-card .area-stat .label { font-size: 11px; opacity: 0.6; }
+        .area-card .area-progress { margin-top: 15px; }
+        .area-card .area-progress .bar { height: 8px; background: #0d1b2a; border-radius: 4px; overflow: hidden; }
+        .area-card .area-progress .fill { height: 100%; border-radius: 4px; }
+        .area-card .area-progress .text { font-size: 12px; margin-top: 5px; text-align: right; }
+        .legend { display: flex; gap: 20px; margin-bottom: 20px; padding: 15px; background: #142238; border-radius: 8px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        .legend-dot { width: 14px; height: 14px; border-radius: 50%; }
+        .legend-dot.complete { background: #4ade80; }
+        .legend-dot.ongoing { background: #facc15; }
+        .legend-dot.not-started { background: #4b5563; }
+        .legend-dot.planned { background: #3b82f6; }
+        .pile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .pile-card { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); border-radius: 12px; padding: 20px; border: 1px solid #2d4a6f; }
+        .pile-card:hover { border-color: #60a5fa; }
+        .pile-card .pile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .pile-card .pile-name { font-size: 18px; font-weight: 600; }
+        .pile-card .pile-status { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .pile-card .pile-status.complete { background: rgba(34,197,94,0.2); color: #4ade80; }
+        .pile-card .pile-status.ongoing { background: rgba(234,179,8,0.2); color: #facc15; }
+        .pile-card .pile-status.not-started { background: rgba(107,114,128,0.2); color: #9ca3af; }
+        .pile-card .pile-progress .bar { height: 10px; background: #0d1b2a; border-radius: 5px; overflow: hidden; }
+        .pile-card .pile-progress .fill { height: 100%; border-radius: 5px; }
+        .pile-card .pile-progress .text { display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px; }
+        .pile-card .stage { display: flex; align-items: center; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 8px; }
+        .pile-card .stage-indicator { width: 12px; height: 12px; border-radius: 50%; margin-right: 12px; }
+        .pile-card .stage-indicator.complete { background: #4ade80; }
+        .pile-card .stage-indicator.ongoing { background: #facc15; animation: pulse 2s infinite; }
+        .pile-card .stage-indicator.not-started { background: #4b5563; }
+        .pile-card .stage-info { flex: 1; }
+        .pile-card .stage-name { font-size: 13px; font-weight: 500; }
+        .pile-card .stage-dates { font-size: 11px; opacity: 0.6; }
+        .pile-card .stage-duration { font-size: 12px; color: #60a5fa; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .map-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
+        .tower-map { background: #142238; border-radius: 12px; padding: 25px; border: 1px solid #2d4a6f; }
+        .tower-map h4 { text-align: center; margin-bottom: 20px; font-size: 16px; color: #60a5fa; }
+        .tower-svg { width: 100%; aspect-ratio: 1; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; border: 1px solid #3b82f6; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #2d4a6f; }
+        .modal-header h2 { font-size: 24px; color: #60a5fa; }
+        .modal-close { background: none; border: none; color: #9ca3af; font-size: 28px; cursor: pointer; }
+        .modal-close:hover { color: #f87171; }
+        .modal-section { margin-bottom: 20px; }
+        .modal-section h3 { font-size: 14px; color: #9ca3af; margin-bottom: 10px; text-transform: uppercase; }
+        .modal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .modal-item { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; }
+        .modal-item .label { font-size: 12px; color: #9ca3af; margin-bottom: 5px; }
+        .modal-item .value { font-size: 20px; font-weight: 600; }
+        .modal-item .value.green { color: #4ade80; }
+        .modal-item .value.yellow { color: #facc15; }
+        .modal-item .value.blue { color: #60a5fa; }
+        .cell-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .cell-table th, .cell-table td { padding: 10px; text-align: center; border-bottom: 1px solid #2d4a6f; }
+        .cell-table th { background: rgba(0,0,0,0.3); font-size: 11px; color: #9ca3af; }
+        .cell-value.positive { color: #4ade80; }
+        .cell-value.negative { color: #f87171; }
+        .schedule-container { background: #142238; border-radius: 12px; border: 1px solid #2d4a6f; overflow: hidden; }
+        .schedule-header-bar { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); padding: 20px 25px; border-bottom: 1px solid #2d4a6f; }
+        .schedule-header-bar h2 { font-size: 20px; margin-bottom: 15px; }
+        .schedule-filters { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+        .schedule-filters select { padding: 10px 15px; border-radius: 8px; border: 1px solid #2d4a6f; background: #1e3a5f; color: #e0e6ed; }
+        .gantt-wrapper { overflow-x: auto; }
+        .gantt-timeline { min-width: 1200px; }
+        .gantt-header { display: flex; background: #1e3a5f; border-bottom: 2px solid #2d4a6f; }
+        .gantt-header-left { width: 250px; min-width: 250px; padding: 15px 20px; font-weight: 600; border-right: 1px solid #2d4a6f; }
+        .gantt-months { display: flex; flex: 1; }
+        .gantt-month { flex: 1; text-align: center; padding: 10px; font-size: 13px; color: #60a5fa; border-right: 1px solid #2d4a6f; }
+        .gantt-area-group { border-bottom: 2px solid #2d4a6f; }
+        .gantt-area-header { background: linear-gradient(135deg, #234b7a 0%, #1a3d5c 100%); padding: 12px 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .gantt-pile-group { border-bottom: 1px solid #1e3a5f; }
+        .gantt-pile-header { display: flex; background: #162d4a; cursor: pointer; }
+        .gantt-pile-header:hover { background: #1a3654; }
+        .gantt-pile-left { width: 250px; min-width: 250px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; border-right: 1px solid #2d4a6f; }
+        .gantt-pile-name { font-weight: 600; }
+        .gantt-pile-badge { padding: 3px 8px; border-radius: 10px; font-size: 10px; }
+        .gantt-pile-badge.psl { background: rgba(239,68,68,0.2); color: #f87171; }
+        .gantt-pile-badge.pgl { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .gantt-pile-right { flex: 1; position: relative; height: 44px; background: rgba(0,0,0,0.1); }
+        .gantt-pile-progress { font-size: 11px; color: #9ca3af; margin-left: auto; }
+        .gantt-toggle { color: #9ca3af; transition: transform 0.3s; }
+        .gantt-toggle.collapsed { transform: rotate(-90deg); }
+        .gantt-works { display: none; }
+        .gantt-works.expanded { display: block; }
+        .gantt-work-row { display: flex; border-bottom: 1px solid rgba(45,74,111,0.3); }
+        .gantt-work-left { width: 250px; min-width: 250px; padding: 10px 20px 10px 40px; font-size: 13px; border-right: 1px solid #2d4a6f; display: flex; align-items: center; gap: 10px; }
+        .gantt-work-status { width: 8px; height: 8px; border-radius: 50%; }
+        .gantt-work-status.complete { background: #4ade80; }
+        .gantt-work-status.ongoing { background: #facc15; }
+        .gantt-work-status.planned { background: #3b82f6; }
+        .gantt-work-right { flex: 1; position: relative; height: 36px; }
+        .gantt-bar { position: absolute; top: 8px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; min-width: 4px; cursor: pointer; }
+        .gantt-bar:hover { transform: scaleY(1.3); z-index: 5; }
+        .gantt-bar.complete { background: linear-gradient(90deg, #22c55e, #4ade80); }
+        .gantt-bar.ongoing { background: linear-gradient(90deg, #eab308, #facc15); }
+        .gantt-bar.planned { background: linear-gradient(90deg, #2563eb, #3b82f6); }
+        .gantt-today { position: absolute; top: 0; bottom: 0; width: 2px; background: #ef4444; z-index: 10; }
+        .gantt-today::before { content: ''; position: absolute; top: -5px; left: -4px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; }
+        .gantt-tooltip { position: fixed; background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; font-size: 13px; z-index: 1000; display: none; pointer-events: none; max-width: 300px; }
+        .gantt-tooltip.visible { display: block; }
+        .gantt-tooltip-title { font-weight: 600; margin-bottom: 8px; color: #60a5fa; }
+        .gantt-tooltip-row { display: flex; justify-content: space-between; gap: 20px; margin: 4px 0; }
+        .gantt-tooltip-label { color: #9ca3af; }
+        .opening-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; }
+        .opening-card { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); border-radius: 12px; padding: 20px; border: 1px solid #2d4a6f; }
+        .opening-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #2d4a6f; }
+        .opening-card-title { font-size: 18px; font-weight: 600; }
+        .opening-card-stage { font-size: 12px; color: #facc15; }
+        .opening-level { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .opening-level-name { font-size: 13px; color: #9ca3af; margin-bottom: 8px; }
+        .opening-level-cells { display: flex; gap: 8px; }
+        .opening-level-cell { flex: 1; text-align: center; }
+        .opening-level-cell-name { font-size: 10px; color: #6b7280; }
+        .opening-level-cell-value { font-size: 14px; font-weight: 600; }
+        .opening-net { display: flex; justify-content: space-between; padding: 15px; background: rgba(59,130,246,0.1); border-radius: 8px; border: 1px solid #3b82f6; margin-top: 15px; }
+        .opening-net-item { text-align: center; }
+        .opening-net-label { font-size: 11px; color: #9ca3af; margin-bottom: 4px; }
+        .opening-net-value { font-size: 18px; font-weight: bold; color: #60a5fa; }
+        .opening-net-max { font-size: 22px; font-weight: bold; color: #4ade80; }
+        .area-section { margin-bottom: 40px; }
+        .area-section-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #2d4a6f; }
+        .stages-list { margin-top: 15px; }
+        .stage-item { display: flex; align-items: center; padding: 8px 12px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 6px; }
+        .stage-item .indicator { width: 10px; height: 10px; border-radius: 50%; margin-right: 10px; }
+        .stage-item .indicator.complete { background: #4ade80; }
+        .stage-item .indicator.ongoing { background: #facc15; }
+        .stage-item .indicator.not-started { background: #4b5563; }
+        .stage-item .info { flex: 1; }
+        .stage-item .name { font-size: 13px; font-weight: 500; }
+        .stage-item .dates { font-size: 11px; color: #9ca3af; }
+        @media (max-width: 768px) { .header { padding: 15px 20px; } .nav-tabs { padding: 0 15px; } .content { padding: 20px 15px; } .gantt-pile-left, .gantt-work-left, .gantt-header-left { width: 180px; min-width: 180px; } .modal-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <h1 id="main-title">🏗️ Лахта Центр - Мониторинг тестовых свай</h1>
+            <div class="subtitle" id="main-subtitle">Многофункциональные комплексы Лахта Центр 2 и Лахта Центр 3</div>
+            <div class="last-update" id="last-update"></div>
+        </div>
+        <div class="header-right">
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="ru">RU</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="tr">TR</button>
+            </div>
+            <div class="header-stats">
+                <div class="header-stat"><div class="value" id="total-piles">-</div><div class="label" data-i18n="totalPiles">Всего свай</div></div>
+                <div class="header-stat"><div class="value" id="overall-progress">-</div><div class="label" data-i18n="overallProgress">Общий прогресс</div></div>
+                <div class="header-stat"><div class="value" id="completed-count">-</div><div class="label" data-i18n="completed">Завершено</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="nav-tabs">
+        <div class="nav-tab active" data-page="overview" data-i18n="tabOverview">📊 Обзор</div>
+        <div class="nav-tab" data-page="lakhta2" data-i18n="tabLakhta2">🏢 Лахта 2</div>
+        <div class="nav-tab" data-page="lakhta3" data-i18n="tabLakhta3">🏢 Лахта 3</div>
+        <div class="nav-tab" data-page="stilobat" data-i18n="tabStilobat">🏛️ Стилобат</div>
+        <div class="nav-tab" data-page="energo" data-i18n="tabEnergo">⚡ Энерго Центр</div>
+        <div class="nav-tab" data-page="opening" data-i18n="tabOpening">📐 Раскрытие ячеек</div>
+        <div class="nav-tab" data-page="schedule" data-i18n="tabSchedule">📅 График работ</div>
+        <div class="nav-tab" data-page="map2d" data-i18n="tabMap">🗺️ 2D Карта</div>
+    </div>
+    <div class="content">
+        <div class="loading" id="loading"><div class="loading-spinner"></div><div data-i18n="loading">Загрузка данных...</div></div>
+        <div class="page active" id="overview"></div>
+        <div class="page" id="lakhta2"></div>
+        <div class="page" id="lakhta3"></div>
+        <div class="page" id="stilobat"></div>
+        <div class="page" id="energo"></div>
+        <div class="page" id="opening"></div>
+        <div class="page" id="schedule"></div>
+        <div class="page" id="map2d"></div>
+    </div>
+    <div class="modal-overlay" id="pile-modal"><div class="modal"><div class="modal-header"><h2 id="modal-title"></h2><button class="modal-close" onclick="closeModal()">×</button></div><div id="modal-content"></div></div></div>
+    <div class="gantt-tooltip" id="gantt-tooltip"></div>
+<script>
+const translations = {
+    ru: { mainTitle: "🏗️ Лахта Центр - Мониторинг тестовых свай", mainSubtitle: "Многофункциональные комплексы Лахта Центр 2 и Лахта Центр 3", totalPiles: "Всего свай", overallProgress: "Общий прогресс", completed: "Завершено", tabOverview: "📊 Обзор", tabLakhta2: "🏢 Лахта 2", tabLakhta3: "🏢 Лахта 3", tabStilobat: "🏛️ Стилобат", tabEnergo: "⚡ Энерго Центр", tabOpening: "📐 Раскрытие ячеек", tabSchedule: "📅 График работ", tabMap: "🗺️ 2D Карта", loading: "Загрузка данных...", totalTestPiles: "Всего тестовых свай", inProgress: "В процессе", notStarted: "Не начато", planned: "Запланировано", progressByArea: "📈 Прогресс по участкам", statusDistribution: "🥧 Распределение статусов", projectAreas: "🏗️ Участки проекта", total: "Всего", readiness: "готовность", testPiles: "Тестовые сваи", stage: "Этап", cell: "Ячейка", notStartedStatus: "Не начато", inProgressStatus: "в процессе", days: "дн.", current: "(текущий)", mapTitle: "🗺️ 2D Визуализация", tower: "Башня", stilobatAndEnergo: "Стилобат и Энерго Центр", dataLoaded: "Данные загружены", errorLoading: "Ошибка загрузки", chartCompleted: "Завершено", chartInProgress: "В процессе", chartNotStarted: "Не начато", readinessPercent: "Готовность %", scheduleTitle: "📅 График работ по сваям", filterAll: "Все", filterArea: "Участок", workType: "Вид работ", startDate: "Начало", endDate: "Окончание", duration: "Срок", status: "Статус", worksCompleted: "выполнено", openingTitle: "📐 Раскрытие ячеек", maxOpening: "Макс раскрытие", netOpening: "Net Opening", currentStage: "Текущий этап", pileInfo: "Информация о свае", cellData: "Данные ячеек", noOpeningData: "Нет данных", clickPileInfo: "Нажмите на сваю для просмотра", today: "Сегодня", piles: "свай", upperLevel: "Верхний", lowerLevel: "Нижний", sensor: "Датчик", stagesProgress: "Прогресс этапов", area: "Зона", type: "Тип" },
+    en: { mainTitle: "🏗️ Lakhta Center - Test Piles Monitoring", mainSubtitle: "Multifunctional complexes Lakhta Center 2 and Lakhta Center 3", totalPiles: "Total Piles", overallProgress: "Overall Progress", completed: "Completed", tabOverview: "📊 Overview", tabLakhta2: "🏢 Lakhta 2", tabLakhta3: "🏢 Lakhta 3", tabStilobat: "🏛️ Stilobat", tabEnergo: "⚡ Energy Center", tabOpening: "📐 Jack Opening", tabSchedule: "📅 Work Schedule", tabMap: "🗺️ 2D Map", loading: "Loading data...", totalTestPiles: "Total Test Piles", inProgress: "In Progress", notStarted: "Not Started", planned: "Planned", progressByArea: "📈 Progress by Area", statusDistribution: "🥧 Status Distribution", projectAreas: "🏗️ Project Areas", total: "Total", readiness: "readiness", testPiles: "Test Piles", stage: "Stage", cell: "Cell", notStartedStatus: "Not Started", inProgressStatus: "in progress", days: "days", current: "(current)", mapTitle: "🗺️ 2D Visualization", tower: "Tower", stilobatAndEnergo: "Stilobat and Energy Center", dataLoaded: "Data loaded", errorLoading: "Error loading", chartCompleted: "Completed", chartInProgress: "In Progress", chartNotStarted: "Not Started", readinessPercent: "Readiness %", scheduleTitle: "📅 Pile Work Schedule", filterAll: "All", filterArea: "Area", workType: "Work Type", startDate: "Start", endDate: "End", duration: "Duration", status: "Status", worksCompleted: "completed", openingTitle: "📐 Jack Opening Data", maxOpening: "Max Opening", netOpening: "Net Opening", currentStage: "Current Stage", pileInfo: "Pile Information", cellData: "Cell Data", noOpeningData: "No data", clickPileInfo: "Click on pile to view info", today: "Today", piles: "piles", upperLevel: "Upper", lowerLevel: "Lower", sensor: "Sensor", stagesProgress: "Stages Progress", area: "Area", type: "Type" },
+    tr: { mainTitle: "🏗️ Lakhta Merkezi - Test Kazıkları İzleme", mainSubtitle: "Çok fonksiyonlu kompleksler Lakhta Merkezi 2 ve Lakhta Merkezi 3", totalPiles: "Toplam Kazık", overallProgress: "Genel İlerleme", completed: "Tamamlandı", tabOverview: "📊 Genel Bakış", tabLakhta2: "🏢 Lakhta 2", tabLakhta3: "🏢 Lakhta 3", tabStilobat: "🏛️ Stilobat", tabEnergo: "⚡ Enerji Merkezi", tabOpening: "📐 Hücre Açılması", tabSchedule: "📅 İş Programı", tabMap: "🗺️ 2D Harita", loading: "Veriler yükleniyor...", totalTestPiles: "Toplam Test Kazıkları", inProgress: "Devam Ediyor", notStarted: "Başlamadı", planned: "Planlandı", progressByArea: "📈 Alana Göre İlerleme", statusDistribution: "🥧 Durum Dağılımı", projectAreas: "🏗️ Proje Alanları", total: "Toplam", readiness: "hazırlık", testPiles: "Test Kazıkları", stage: "Aşama", cell: "Hücre", notStartedStatus: "Başlamadı", inProgressStatus: "devam ediyor", days: "gün", current: "(mevcut)", mapTitle: "🗺️ 2D Görselleştirme", tower: "Kule", stilobatAndEnergo: "Stilobat ve Enerji Merkezi", dataLoaded: "Veriler yüklendi", errorLoading: "Yükleme hatası", chartCompleted: "Tamamlandı", chartInProgress: "Devam Ediyor", chartNotStarted: "Başlamadı", readinessPercent: "Hazırlık %", scheduleTitle: "📅 Kazık İş Programı", filterAll: "Tümü", filterArea: "Alan", workType: "İş Türü", startDate: "Başlangıç", endDate: "Bitiş", duration: "Süre", status: "Durum", worksCompleted: "tamamlandı", openingTitle: "📐 Hücre Açılması Verileri", maxOpening: "Maks Açılma", netOpening: "Net Açılma", currentStage: "Mevcut Aşama", pileInfo: "Kazık Bilgisi", cellData: "Hücre Verileri", noOpeningData: "Veri yok", clickPileInfo: "Bilgi için kazığa tıklayın", today: "Bugün", piles: "kazık", upperLevel: "Üst", lowerLevel: "Alt", sensor: "Sensör", stagesProgress: "Aşama İlerlemesi", area: "Alan", type: "Tip" }
+};
+const workTranslations = {
+    "Испытания": { en: "Testing", tr: "Test" },
+    "Отбор керна бетона": { en: "Concrete Core Sampling", tr: "Beton Karot Alımı" },
+    "Отбор керна грунта": { en: "Soil Core Sampling", tr: "Zemin Karot Alımı" },
+    "Испытания керна бетона": { en: "Concrete Core Testing", tr: "Beton Karot Testi" },
+    "Испытания керна грунта": { en: "Soil Core Testing", tr: "Zemin Karot Testi" },
+    "Предварительный отчет": { en: "Preliminary Report", tr: "Ön Rapor" },
+    "Итоговый отчет": { en: "Final Report", tr: "Final Rapor" }
+};
+let currentLang = 'ru', pilesData = [], worksData = [], openingData = [], charts = {};
+function t(key) { return translations[currentLang][key] || translations.ru[key] || key; }
+function tw(workType) { if (currentLang === 'ru') return workType; return workTranslations[workType]?.[currentLang] || workType; }
+function updateTranslations() {
+    document.getElementById('main-title').textContent = t('mainTitle');
+    document.getElementById('main-subtitle').textContent = t('mainSubtitle');
+    document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+    if (pilesData.length > 0) renderDashboard();
+}
+document.querySelectorAll('.lang-btn').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentLang = btn.dataset.lang;
+    localStorage.setItem('dashboardLang', currentLang);
+    updateTranslations();
+}));
+const savedLang = localStorage.getItem('dashboardLang');
+if (savedLang && translations[savedLang]) {
+    currentLang = savedLang;
+    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === currentLang));
+}
+function parseCSV(csv) {
+    const lines = csv.trim().split('\n'), headers = lines[0].split(',').map(h => h.trim());
+    return lines.slice(1).map(line => {
+        const values = [], row = {}; let current = '', inQuotes = false;
+        for (const char of line) { if (char === '"') inQuotes = !inQuotes; else if (char === ',' && !inQuotes) { values.push(current); current = ''; } else current += char; }
+        values.push(current);
+        headers.forEach((h, i) => row[h] = values[i]?.trim() || '');
+        return row;
+    }).filter(r => Object.values(r).some(v => v));
+}
+async function loadData() {
+    const SHEET_ID = "1w-4sNcYkshJ6WVi-WpWA3Q9oXQ8ldgg71R3ac39IueU";
+    const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+    const WORKS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=668727060`;
+    const OPENING_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=90826474`;
+    try {
+        const [pilesRes, worksRes, openingRes] = await Promise.all([fetch(DATA_URL), fetch(WORKS_URL).catch(() => null), fetch(OPENING_URL).catch(() => null)]);
+        if (!pilesRes.ok) throw new Error('Google Sheets data not found');
+        pilesData = parseCSV(await pilesRes.text()).map(r => ({ id: r.Pile_ID, area: r.Area, type: r.Type, status: r.Status, readiness: parseInt(r['Readiness_%']) || 0, stages: parseInt(r.Total_Stages) || 2, stage1_start: r.Stage1_Start, stage1_end: r.Stage1_End, stage2_start: r.Stage2_Start, stage2_end: r.Stage2_End, stage3_start: r.Stage3_Start, stage3_end: r.Stage3_End })).filter(p => p.id);
+        if (worksRes?.ok) worksData = parseCSV(await worksRes.text()).map(r => ({ pile_id: r.Pile_ID, area: r.Area, pile_type: r.Pile_Type, work_type: r.Work_Type, start_date: r.Start_Date, end_date: r.End_Date, duration: parseInt(r.Duration_Days) || 0, status: r.Status || 'Planned' })).filter(w => w.pile_id && w.work_type);
+        if (openingRes?.ok) openingData = parseCSV(await openingRes.text()).map(r => ({ pile_id: r.Pile_ID, area: r.Area, type: r.Type, current_stage: parseInt(r.Current_Stage) || 1, total_stages: parseInt(r.Total_Stages) || 2, cell_number: parseInt(r.Cell_Number) || 1, level_upper: r.Level_Upper, level_lower: r.Level_Lower, cell_a_upper: parseFloat(r.Cell_A_Upper) || 0, cell_b_upper: parseFloat(r.Cell_B_Upper) || 0, cell_c_upper: parseFloat(r.Cell_C_Upper) || 0, cell_a_lower: parseFloat(r.Cell_A_Lower) || 0, cell_b_lower: parseFloat(r.Cell_B_Lower) || 0, cell_c_lower: parseFloat(r.Cell_C_Lower) || 0, net_a: parseFloat(r.Net_Opening_A) || 0, net_b: parseFloat(r.Net_Opening_B) || 0, net_c: parseFloat(r.Net_Opening_C) || 0, max_net: parseFloat(r.Max_Net_Opening) || 0 })).filter(o => o.pile_id);
+        if (!pilesData.length) throw new Error('No data');
+        renderDashboard();
+        document.getElementById('last-update').textContent = t('dataLoaded') + ': ' + new Date().toLocaleString();
+        document.getElementById('loading').style.display = 'none';
+    } catch (e) { document.getElementById('loading').innerHTML = '<div class="error-message"><h3>' + t('errorLoading') + '</h3><p>' + e.message + '</p></div>'; }
+}
+function renderDashboard() {
+    const stats = { total: pilesData.length, complete: pilesData.filter(p => p.status === 'Complete').length, ongoing: pilesData.filter(p => p.status === 'Ongoing').length, notStarted: pilesData.filter(p => p.status === 'Not Started').length, avgReadiness: Math.round(pilesData.reduce((s, p) => s + p.readiness, 0) / pilesData.length) };
+    document.getElementById('total-piles').textContent = stats.total;
+    document.getElementById('overall-progress').textContent = stats.avgReadiness + '%';
+    document.getElementById('completed-count').textContent = stats.complete;
+    renderOverview(stats); renderAreaPage('lakhta2', 'Lakhta 2'); renderAreaPage('lakhta3', 'Lakhta 3'); renderAreaPage('stilobat', 'Stilobat'); renderAreaPage('energo', 'Energo Center'); renderOpeningPage(); renderSchedule(); renderMap();
+}
+function getAreaStats(name) { const piles = pilesData.filter(p => p.area === name); return { name, total: piles.length, complete: piles.filter(p => p.status === 'Complete').length, ongoing: piles.filter(p => p.status === 'Ongoing').length, notStarted: piles.filter(p => p.status === 'Not Started').length, avgReadiness: piles.length ? Math.round(piles.reduce((s, p) => s + p.readiness, 0) / piles.length) : 0 }; }
+function getAreaDisplayName(name) { const n = { 'Stilobat': { ru: 'Стилобат', en: 'Stilobat', tr: 'Stilobat' }, 'Lakhta 2': { ru: 'Лахта 2', en: 'Lakhta 2', tr: 'Lakhta 2' }, 'Lakhta 3': { ru: 'Лахта 3', en: 'Lakhta 3', tr: 'Lakhta 3' }, 'Energo Center': { ru: 'Энерго Центр', en: 'Energy Center', tr: 'Enerji Merkezi' } }; return n[name]?.[currentLang] || name; }
+function renderOverview(stats) {
+    const areas = ['Stilobat', 'Lakhta 2', 'Lakhta 3', 'Energo Center'], areaStats = areas.map(getAreaStats);
+    const icons = { 'Stilobat': '🏛️', 'Lakhta 2': '🏢', 'Lakhta 3': '🏢', 'Energo Center': '⚡' };
+    const pages = { 'Stilobat': 'stilobat', 'Lakhta 2': 'lakhta2', 'Lakhta 3': 'lakhta3', 'Energo Center': 'energo' };
+    document.getElementById('overview').innerHTML = '<div class="overview-grid"><div class="stat-card"><div class="icon blue">📊</div><div class="value">' + stats.total + '</div><div class="label">' + t('totalTestPiles') + '</div></div><div class="stat-card"><div class="icon green">✅</div><div class="value">' + stats.complete + '</div><div class="label">' + t('completed') + '</div><div class="progress-bar"><div class="progress-fill" style="width:' + (stats.total ? stats.complete / stats.total * 100 : 0) + '%;background:#4ade80"></div></div></div><div class="stat-card"><div class="icon yellow">⏳</div><div class="value">' + stats.ongoing + '</div><div class="label">' + t('inProgress') + '</div><div class="progress-bar"><div class="progress-fill" style="width:' + (stats.total ? stats.ongoing / stats.total * 100 : 0) + '%;background:#facc15"></div></div></div><div class="stat-card"><div class="icon red">⏸️</div><div class="value">' + stats.notStarted + '</div><div class="label">' + t('notStarted') + '</div><div class="progress-bar"><div class="progress-fill" style="width:' + (stats.total ? stats.notStarted / stats.total * 100 : 0) + '%;background:#f87171"></div></div></div></div><div class="charts-row"><div class="chart-card"><h3>' + t('progressByArea') + '</h3><canvas id="areaProgressChart"></canvas></div><div class="chart-card"><h3>' + t('statusDistribution') + '</h3><canvas id="statusPieChart"></canvas></div></div><h3 style="margin-bottom:20px">' + t('projectAreas') + '</h3><div class="area-cards">' + areaStats.map(a => '<div class="area-card" onclick="switchToPage(\'' + pages[a.name] + '\')"><div class="area-name">' + icons[a.name] + ' ' + getAreaDisplayName(a.name) + '</div><div class="area-stats"><div class="area-stat"><div class="value" style="color:#60a5fa">' + a.total + '</div><div class="label">' + t('total') + '</div></div><div class="area-stat"><div class="value" style="color:#4ade80">' + a.complete + '</div><div class="label">' + t('completed') + '</div></div><div class="area-stat"><div class="value" style="color:#facc15">' + a.ongoing + '</div><div class="label">' + t('inProgress') + '</div></div><div class="area-stat"><div class="value" style="color:#f87171">' + a.notStarted + '</div><div class="label">' + t('notStarted') + '</div></div></div><div class="area-progress"><div class="bar"><div class="fill" style="width:' + a.avgReadiness + '%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div><div class="text">' + a.avgReadiness + '% ' + t('readiness') + '</div></div></div>').join('') + '</div>';
+    if (charts.areaProgress) charts.areaProgress.destroy();
+    if (charts.statusPie) charts.statusPie.destroy();
+    charts.areaProgress = new Chart(document.getElementById('areaProgressChart'), { type: 'bar', data: { labels: areaStats.map(a => getAreaDisplayName(a.name)), datasets: [{ label: t('readinessPercent'), data: areaStats.map(a => a.avgReadiness), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b'], borderRadius: 8 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: '#2d4a6f' }, ticks: { color: '#9ca3af' } }, x: { grid: { display: false }, ticks: { color: '#9ca3af' } } } } });
+    charts.statusPie = new Chart(document.getElementById('statusPieChart'), { type: 'doughnut', data: { labels: [t('chartCompleted'), t('chartInProgress'), t('chartNotStarted')], datasets: [{ data: [stats.complete, stats.ongoing, stats.notStarted], backgroundColor: ['#4ade80', '#facc15', '#6b7280'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 20 } } } } });
+}
+function renderAreaPage(pageId, areaName) {
+    const piles = pilesData.filter(p => p.area === areaName);
+    document.getElementById(pageId).innerHTML = '<h2 style="font-size:24px;margin-bottom:20px">' + getAreaDisplayName(areaName) + ' - ' + t('testPiles') + '</h2><div class="legend"><div class="legend-item"><div class="legend-dot complete"></div> ' + t('completed') + '</div><div class="legend-item"><div class="legend-dot ongoing"></div> ' + t('inProgress') + '</div><div class="legend-item"><div class="legend-dot not-started"></div> ' + t('notStarted') + '</div></div><div class="pile-grid">' + piles.map(renderPileCard).join('') + '</div>';
+}
+function renderPileCard(pile) {
+    const sc = pile.status === 'Complete' ? 'complete' : pile.status === 'Ongoing' ? 'ongoing' : 'not-started';
+    const st = pile.status === 'Complete' ? t('completed') : pile.status === 'Ongoing' ? t('inProgress') : t('notStarted');
+    const pc = pile.readiness === 100 ? '#4ade80' : pile.readiness > 50 ? '#facc15' : '#f87171';
+    let stages = '';
+    for (let i = 1; i <= pile.stages; i++) {
+        const start = pile['stage' + i + '_start'], end = pile['stage' + i + '_end'];
+        let ss = 'not-started', dates = t('notStartedStatus'), dur = '';
+        if (start) { if (end) { ss = 'complete'; dates = formatDate(start) + ' - ' + formatDate(end); dur = calcDuration(start, end); } else { ss = 'ongoing'; dates = formatDate(start) + ' - ' + t('inProgressStatus'); dur = calcDuration(start, new Date().toISOString().split('T')[0]) + ' ' + t('current'); } }
+        stages += '<div class="stage"><div class="stage-indicator ' + ss + '"></div><div class="stage-info"><div class="stage-name">' + t('stage') + ' ' + i + ' (' + t('cell') + ' ' + i + ')</div><div class="stage-dates">' + dates + '</div></div>' + (dur ? '<div class="stage-duration">' + dur + '</div>' : '') + '</div>';
+    }
+    return '<div class="pile-card"><div class="pile-header"><div class="pile-name">' + pile.id + '</div><div class="pile-status ' + sc + '">' + st + '</div></div><div class="pile-progress"><div class="bar"><div class="fill" style="width:' + pile.readiness + '%;background:' + pc + '"></div></div><div class="text"><span>' + t('readiness') + '</span><span>' + pile.readiness + '%</span></div></div>' + stages + '</div>';
+}
+function parseDate(d) { if (!d) return null; if (d.includes(".")) { const p = d.split("."); if (p.length === 3) return new Date(p[2], p[1]-1, p[0]); } return new Date(d); }
+function formatDate(d) { if (!d) return ''; try { const dt = parseDate(d); if (!dt || isNaN(dt)) return d; return dt.toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : currentLang === 'tr' ? 'tr-TR' : 'en-US', { day: '2-digit', month: '2-digit', year: '2-digit' }); } catch { return d; } }
+function calcDuration(s, e) { try { const ds = parseDate(s), de = parseDate(e); if (!ds || !de) return ''; return Math.round((de - ds) / 86400000) + ' ' + t('days'); } catch { return ''; } }
+function renderOpeningPage() {
+    if (!openingData.length) { document.getElementById('opening').innerHTML = '<h2>' + t('openingTitle') + '</h2><p style="color:#9ca3af;margin-top:20px">' + t('noOpeningData') + '</p>'; return; }
+    const pileIds = [...new Set(openingData.map(o => o.pile_id))];
+    const areas = { 'Lakhta 2': [], 'Lakhta 3': [] };
+    pileIds.forEach(id => { if (id.includes('2-')) areas['Lakhta 2'].push(id); else if (id.includes('3-')) areas['Lakhta 3'].push(id); });
+    let html = '<h2 style="margin-bottom:20px">' + t('openingTitle') + '</h2>';
+    Object.entries(areas).forEach(([areaName, piles]) => {
+        if (!piles.length) return;
+        html += '<div class="area-section"><div class="area-section-title">🏢 ' + getAreaDisplayName(areaName) + '</div><div class="opening-cards">';
+        piles.forEach(pileId => {
+            const d = openingData.find(o => o.pile_id === pileId);
+            if (!d) return;
+            html += '<div class="opening-card"><div class="opening-card-header"><div class="opening-card-title">' + pileId + ' <span style="font-size:12px;color:#9ca3af">(' + d.type + ')</span></div><div class="opening-card-stage">' + t('cell') + ' ' + d.cell_number + ' / ' + d.total_stages + '</div></div>';
+            html += '<div class="opening-level"><div class="opening-level-name">' + d.level_upper + ' (' + t('upperLevel') + ')</div><div class="opening-level-cells"><div class="opening-level-cell"><div class="opening-level-cell-name">' + t('sensor') + ' A</div><div class="opening-level-cell-value" style="color:#4ade80">' + d.cell_a_upper.toFixed(2) + '</div></div><div class="opening-level-cell"><div class="opening-level-cell-name">' + t('sensor') + ' B</div><div class="opening-level-cell-value" style="color:#4ade80">' + d.cell_b_upper.toFixed(2) + '</div></div><div class="opening-level-cell"><div class="opening-level-cell-name">' + t('sensor') + ' C</div><div class="opening-level-cell-value" style="color:#4ade80">' + d.cell_c_upper.toFixed(2) + '</div></div></div></div>';
+            html += '<div class="opening-level"><div class="opening-level-name">' + d.level_lower + ' (' + t('lowerLevel') + ')</div><div class="opening-level-cells"><div class="opening-level-cell"><div class="opening-level-cell-name">' + t('sensor') + ' A</div><div class="opening-level-cell-value" style="color:#f87171">' + d.cell_a_lower.toFixed(2) + '</div></div><div class="opening-level-cell"><div class="opening-level-cell-name">' + t('sensor') + ' B</div><div class="opening-level-cell-value" style="color:#f87171">' + d.cell_b_lower.toFixed(2) + '</div></div><div class="opening-level-cell"><div class="opening-level-cell-name">' + t('sensor') + ' C</div><div class="opening-level-cell-value" style="color:#f87171">' + d.cell_c_lower.toFixed(2) + '</div></div></div></div>';
+            html += '<div class="opening-net"><div class="opening-net-item"><div class="opening-net-label">Net A</div><div class="opening-net-value">' + d.net_a.toFixed(2) + '</div></div><div class="opening-net-item"><div class="opening-net-label">Net B</div><div class="opening-net-value">' + d.net_b.toFixed(2) + '</div></div><div class="opening-net-item"><div class="opening-net-label">Net C</div><div class="opening-net-value">' + d.net_c.toFixed(2) + '</div></div><div class="opening-net-item"><div class="opening-net-label">' + t('maxOpening') + '</div><div class="opening-net-max">' + d.max_net.toFixed(2) + ' mm</div></div></div></div>';
+        });
+        html += '</div></div>';
+    });
+    document.getElementById('opening').innerHTML = html;
+}
+function renderSchedule() {
+    if (!worksData.length) { document.getElementById('schedule').innerHTML = '<h2>' + t('scheduleTitle') + '</h2><p style="color:#9ca3af;margin-top:20px">' + t('noOpeningData') + '</p>'; return; }
+    const areas = [...new Set(worksData.map(w => w.area))];
+    document.getElementById('schedule').innerHTML = '<div class="schedule-container"><div class="schedule-header-bar"><h2>' + t('scheduleTitle') + '</h2><div class="schedule-filters"><div class="legend" style="margin:0;padding:10px 15px"><div class="legend-item"><div class="legend-dot complete"></div> ' + t('completed') + '</div><div class="legend-item"><div class="legend-dot ongoing"></div> ' + t('inProgress') + '</div><div class="legend-item"><div class="legend-dot planned"></div> ' + t('planned') + '</div><div class="legend-item" style="color:#ef4444">│ ' + t('today') + '</div></div><select id="filter-area"><option value="">' + t('filterArea') + ': ' + t('filterAll') + '</option>' + areas.map(a => '<option value="' + a + '">' + getAreaDisplayName(a) + '</option>').join('') + '</select></div></div><div class="gantt-wrapper" id="gantt-container"></div></div>';
+    renderGantt(worksData);
+    document.getElementById('filter-area').addEventListener('change', e => renderGantt(e.target.value ? worksData.filter(w => w.area === e.target.value) : worksData));
+}
+function renderGantt(data) {
+    const container = document.getElementById('gantt-container');
+    const allDates = data.flatMap(w => [parseDate(w.start_date), parseDate(w.end_date)]).filter(d => !isNaN(d));
+    if (!allDates.length) { container.innerHTML = '<p style="padding:20px">' + t('noOpeningData') + '</p>'; return; }
+    let minDate = new Date(Math.min(...allDates)), maxDate = new Date(Math.max(...allDates));
+    minDate.setDate(minDate.getDate() - 7); maxDate.setDate(maxDate.getDate() + 14);
+    const today = new Date(), todayPos = ((today - minDate) / (maxDate - minDate)) * 100;
+    const months = []; let cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+    while (cur <= maxDate) {
+        const mEnd = new Date(cur.getFullYear(), cur.getMonth() + 1, 0);
+        const sPos = Math.max(0, ((cur - minDate) / (maxDate - minDate)) * 100);
+        const ePos = Math.min(100, ((mEnd - minDate) / (maxDate - minDate)) * 100);
+        months.push({ name: cur.toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : currentLang === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', year: '2-digit' }), width: ePos - sPos });
+        cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+    }
+    const areas = [...new Set(data.map(w => w.area))];
+    let html = '<div class="gantt-timeline"><div class="gantt-header"><div class="gantt-header-left">' + t('workType') + '</div><div class="gantt-months">' + months.map(m => '<div class="gantt-month" style="flex:' + m.width + '">' + m.name + '</div>').join('') + '</div></div><div class="gantt-body">';
+    areas.forEach(area => {
+        const areaWorks = data.filter(w => w.area === area);
+        const piles = [...new Set(areaWorks.map(w => w.pile_id))];
+        html += '<div class="gantt-area-group"><div class="gantt-area-header" onclick="toggleGanttArea(this)"><span>▼</span> 🏢 ' + getAreaDisplayName(area) + ' (' + piles.length + ' ' + t('piles') + ')</div><div class="gantt-area-content">';
+        piles.forEach(pileId => {
+            const pileWorks = areaWorks.filter(w => w.pile_id === pileId);
+            const completed = pileWorks.filter(w => w.status === 'Complete').length;
+            const pType = pileWorks[0]?.pile_type || '';
+            const isPSL = pType === 'PSL';
+            html += '<div class="gantt-pile-group"><div class="gantt-pile-header" onclick="toggleGanttPile(this)"><div class="gantt-pile-left"><span class="gantt-toggle">▼</span><span class="gantt-pile-name">' + pileId + '</span><span class="gantt-pile-badge ' + (isPSL ? 'psl' : 'pgl') + '">' + pType + '</span><span class="gantt-pile-progress">' + completed + '/' + pileWorks.length + '</span></div><div class="gantt-pile-right">' + (todayPos >= 0 && todayPos <= 100 ? '<div class="gantt-today" style="left:' + todayPos + '%"></div>' : '');
+            pileWorks.forEach(w => {
+                const sP = ((parseDate(w.start_date) - minDate) / (maxDate - minDate)) * 100;
+                const eP = ((parseDate(w.end_date) - minDate) / (maxDate - minDate)) * 100;
+                html += '<div class="gantt-bar ' + w.status.toLowerCase() + '" style="left:' + sP + '%;width:' + Math.max(0.5, eP - sP) + '%" data-work="' + tw(w.work_type) + '" data-start="' + formatDate(w.start_date) + '" data-end="' + formatDate(w.end_date) + '" data-duration="' + w.duration + '" data-status="' + w.status + '" onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()"></div>';
+            });
+            html += '</div></div><div class="gantt-works">';
+            pileWorks.forEach(w => {
+                const sP = ((parseDate(w.start_date) - minDate) / (maxDate - minDate)) * 100;
+                const eP = ((parseDate(w.end_date) - minDate) / (maxDate - minDate)) * 100;
+                const bw = Math.max(0.5, eP - sP);
+                html += '<div class="gantt-work-row"><div class="gantt-work-left"><div class="gantt-work-status ' + w.status.toLowerCase() + '"></div>' + tw(w.work_type) + '</div><div class="gantt-work-right">' + (todayPos >= 0 && todayPos <= 100 ? '<div class="gantt-today" style="left:' + todayPos + '%"></div>' : '') + '<div class="gantt-bar ' + w.status.toLowerCase() + '" style="left:' + sP + '%;width:' + bw + '%" data-work="' + tw(w.work_type) + '" data-start="' + formatDate(w.start_date) + '" data-end="' + formatDate(w.end_date) + '" data-duration="' + w.duration + '" data-status="' + w.status + '" onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()">' + (bw > 5 ? '<span>' + w.duration + t('days').charAt(0) + '</span>' : '') + '</div></div></div>';
+            });
+            html += '</div></div>';
+        });
+        html += '</div></div>';
+    });
+    html += '</div></div>';
+    container.innerHTML = html;
+}
+function toggleGanttArea(h) { const c = h.nextElementSibling; c.style.display = c.style.display === 'none' ? 'block' : 'none'; h.querySelector('span').textContent = c.style.display === 'none' ? '▶' : '▼'; }
+function toggleGanttPile(h) { const w = h.nextElementSibling, t = h.querySelector('.gantt-toggle'); w.classList.toggle('expanded'); t.classList.toggle('collapsed'); }
+function showTooltip(e, el) {
+    const tip = document.getElementById('gantt-tooltip');
+    const st = { 'Complete': t('completed'), 'Ongoing': t('inProgress'), 'Planned': t('planned') };
+    tip.innerHTML = '<div class="gantt-tooltip-title">' + el.dataset.work + '</div><div class="gantt-tooltip-row"><span class="gantt-tooltip-label">' + t('startDate') + ':</span> <span>' + el.dataset.start + '</span></div><div class="gantt-tooltip-row"><span class="gantt-tooltip-label">' + t('endDate') + ':</span> <span>' + el.dataset.end + '</span></div><div class="gantt-tooltip-row"><span class="gantt-tooltip-label">' + t('duration') + ':</span> <span>' + el.dataset.duration + ' ' + t('days') + '</span></div><div class="gantt-tooltip-row"><span class="gantt-tooltip-label">' + t('status') + ':</span> <span>' + (st[el.dataset.status] || el.dataset.status) + '</span></div>';
+    // Позиционирование с учетом границ экрана
+    let x = e.pageX + 15, y = e.pageY - 80;
+    const tipWidth = 280, tipHeight = 130;
+    if (x + tipWidth > window.innerWidth) x = e.pageX - tipWidth - 15;
+    if (y < 10) y = 10;
+    if (y + tipHeight > window.innerHeight) y = window.innerHeight - tipHeight - 10;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+    tip.classList.add('visible');
+}
+function hideTooltip() { document.getElementById('gantt-tooltip').classList.remove('visible'); }
+function renderMap() {
+    document.getElementById('map2d').innerHTML = '<h2 style="margin-bottom:20px">' + t('mapTitle') + '</h2><p style="margin-bottom:15px;color:#9ca3af;font-size:14px">' + t('clickPileInfo') + '</p><div class="legend"><div class="legend-item"><div class="legend-dot complete"></div> ' + t('completed') + ' (100%)</div><div class="legend-item"><div class="legend-dot ongoing"></div> ' + t('inProgress') + '</div><div class="legend-item"><div class="legend-dot not-started"></div> ' + t('notStarted') + '</div></div><div class="map-container"><div class="tower-map"><h4>' + t('tower') + ' ' + getAreaDisplayName('Lakhta 2') + '</h4><svg class="tower-svg" id="lakhta2-svg" viewBox="0 0 400 400"></svg></div><div class="tower-map"><h4>' + t('tower') + ' ' + getAreaDisplayName('Lakhta 3') + '</h4><svg class="tower-svg" id="lakhta3-svg" viewBox="0 0 400 400"></svg></div></div><div class="tower-map" style="margin-top:20px"><h4>' + t('stilobatAndEnergo') + '</h4><svg class="tower-svg" id="stilobat-svg" viewBox="0 0 800 400"></svg></div>';
+    drawTowerMap('lakhta2-svg', 'Lakhta 2'); drawTowerMap('lakhta3-svg', 'Lakhta 3'); drawStilobatMap();
+}
+function drawTowerMap(svgId, area) {
+    const svg = document.getElementById(svgId); if (!svg) return; svg.innerHTML = '';
+    const piles = pilesData.filter(p => p.area === area), cx = 200, cy = 200;
+    for (let r = 50; r <= 180; r += 40) { const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r); c.setAttribute('fill', 'none'); c.setAttribute('stroke', '#2d4a6f'); c.setAttribute('stroke-dasharray', '5,5'); svg.appendChild(c); }
+    for (let a = 0; a < 360; a += 45) { const rad = a * Math.PI / 180, l = document.createElementNS('http://www.w3.org/2000/svg', 'line'); l.setAttribute('x1', cx); l.setAttribute('y1', cy); l.setAttribute('x2', cx + 180 * Math.cos(rad)); l.setAttribute('y2', cy + 180 * Math.sin(rad)); l.setAttribute('stroke', '#2d4a6f'); l.setAttribute('stroke-dasharray', '5,5'); svg.appendChild(l); }
+    piles.filter(p => p.type === 'PSL').forEach((p, i) => { const a = (i * 90 + 45) * Math.PI / 180; drawPileMarker(svg, p, cx + 140 * Math.cos(a), cy + 140 * Math.sin(a)); });
+    piles.filter(p => p.type === 'PGL').forEach((p, i) => { const a = (i * 90) * Math.PI / 180; drawPileMarker(svg, p, cx + 60 * Math.cos(a), cy + 60 * Math.sin(a)); });
+}
+function drawPileMarker(svg, pile, x, y) {
+    const col = pile.status === 'Complete' ? '#4ade80' : pile.status === 'Ongoing' ? '#facc15' : '#6b7280';
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.style.cursor = 'pointer'; g.onclick = () => showPileModal(pile);
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 22); c.setAttribute('fill', '#1e3a5f'); c.setAttribute('stroke', col); c.setAttribute('stroke-width', '3'); g.appendChild(c);
+    g.onmouseenter = () => { c.setAttribute('r', 26); c.setAttribute('stroke-width', '4'); };
+    g.onmouseleave = () => { c.setAttribute('r', 22); c.setAttribute('stroke-width', '3'); };
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text'); txt.setAttribute('x', x); txt.setAttribute('y', y + 4); txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('fill', 'white'); txt.setAttribute('font-size', '10'); txt.setAttribute('font-weight', 'bold'); txt.textContent = pile.readiness + '%'; g.appendChild(txt);
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text'); lbl.setAttribute('x', x); lbl.setAttribute('y', y + 38); lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('fill', '#9ca3af'); lbl.setAttribute('font-size', '10'); lbl.textContent = pile.id; g.appendChild(lbl);
+    svg.appendChild(g);
+}
+function drawStilobatMap() {
+    const svg = document.getElementById('stilobat-svg'); if (!svg) return; svg.innerHTML = '';
+    const stilobat = pilesData.filter(p => p.area === 'Stilobat'), energo = pilesData.filter(p => p.area === 'Energo Center');
+    let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); r.setAttribute('x', 50); r.setAttribute('y', 50); r.setAttribute('width', 400); r.setAttribute('height', 300); r.setAttribute('fill', 'none'); r.setAttribute('stroke', '#2d4a6f'); r.setAttribute('stroke-width', '2'); r.setAttribute('rx', '10'); svg.appendChild(r);
+    let lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text'); lbl.setAttribute('x', 250); lbl.setAttribute('y', 30); lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('fill', '#60a5fa'); lbl.setAttribute('font-size', '14'); lbl.textContent = getAreaDisplayName('Stilobat'); svg.appendChild(lbl);
+    stilobat.forEach((p, i) => drawSimplePile(svg, p, 100 + (i % 5) * 75, 100 + Math.floor(i / 5) * 65));
+    r = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); r.setAttribute('x', 550); r.setAttribute('y', 100); r.setAttribute('width', 200); r.setAttribute('height', 200); r.setAttribute('fill', 'none'); r.setAttribute('stroke', '#2d4a6f'); r.setAttribute('stroke-width', '2'); r.setAttribute('rx', '10'); svg.appendChild(r);
+    lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text'); lbl.setAttribute('x', 650); lbl.setAttribute('y', 80); lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('fill', '#f59e0b'); lbl.setAttribute('font-size', '14'); lbl.textContent = getAreaDisplayName('Energo Center'); svg.appendChild(lbl);
+    energo.forEach((p, i) => drawSimplePile(svg, p, 600 + (i % 2) * 100, 160 + Math.floor(i / 2) * 80));
+}
+function drawSimplePile(svg, pile, x, y) {
+    const col = pile.status === 'Complete' ? '#4ade80' : pile.status === 'Ongoing' ? '#facc15' : '#6b7280';
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.style.cursor = 'pointer'; g.onclick = () => showPileModal(pile);
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 18); c.setAttribute('fill', '#1e3a5f'); c.setAttribute('stroke', col); c.setAttribute('stroke-width', '3'); g.appendChild(c);
+    g.onmouseenter = () => { c.setAttribute('r', 22); c.setAttribute('stroke-width', '4'); };
+    g.onmouseleave = () => { c.setAttribute('r', 18); c.setAttribute('stroke-width', '3'); };
+    if (pile.readiness === 100) { const f = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); f.setAttribute('cx', x); f.setAttribute('cy', y); f.setAttribute('r', 14); f.setAttribute('fill', col); f.setAttribute('opacity', '0.3'); g.appendChild(f); }
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text'); txt.setAttribute('x', x); txt.setAttribute('y', y + 4); txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('fill', 'white'); txt.setAttribute('font-size', '9'); txt.setAttribute('font-weight', 'bold'); txt.textContent = pile.readiness + '%'; g.appendChild(txt);
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text'); lbl.setAttribute('x', x); lbl.setAttribute('y', y + 32); lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('fill', '#9ca3af'); lbl.setAttribute('font-size', '8'); lbl.textContent = pile.id; g.appendChild(lbl);
+    svg.appendChild(g);
+}
+function showPileModal(pile) {
+    document.getElementById('modal-title').textContent = pile.id + ' (' + pile.type + ')';
+    const sc = pile.status === 'Complete' ? 'green' : pile.status === 'Ongoing' ? 'yellow' : '';
+    const st = pile.status === 'Complete' ? t('completed') : pile.status === 'Ongoing' ? t('inProgress') : t('notStarted');
+    // Правильный подсчет завершенных этапов
+    let completedStages = 0, currentStageNum = 0;
+    for (let i = 1; i <= pile.stages; i++) {
+        const start = pile['stage' + i + '_start'], end = pile['stage' + i + '_end'];
+        if (start && end) completedStages++;
+        else if (start && !end) currentStageNum = i;
+    }
+    if (completedStages === pile.stages) currentStageNum = pile.stages;
+    else if (currentStageNum === 0 && completedStages > 0) currentStageNum = completedStages;
+    // Генерация списка этапов
+    let stagesHtml = '<div class="stages-list">';
+    for (let i = 1; i <= pile.stages; i++) {
+        const start = pile['stage' + i + '_start'], end = pile['stage' + i + '_end'];
+        let ss = 'not-started', dates = t('notStartedStatus');
+        if (start && end) { ss = 'complete'; dates = formatDate(start) + ' - ' + formatDate(end); }
+        else if (start) { ss = 'ongoing'; dates = formatDate(start) + ' - ' + t('inProgressStatus'); }
+        stagesHtml += '<div class="stage-item"><div class="indicator ' + ss + '"></div><div class="info"><div class="name">' + t('stage') + ' ' + i + ' (' + t('cell') + ' ' + i + ')</div><div class="dates">' + dates + '</div></div></div>';
+    }
+    stagesHtml += '</div>';
+    const op = openingData.find(o => o.pile_id === pile.id);
+    let oh = '';
+    if (op) {
+        oh = '<div class="modal-section"><h3>' + t('cellData') + ' (' + t('cell') + ' ' + op.cell_number + ')</h3><table class="cell-table"><thead><tr><th>' + t('sensor') + '</th><th>' + op.level_upper + '</th><th>' + op.level_lower + '</th><th>' + t('netOpening') + '</th></tr></thead><tbody><tr><td>A</td><td class="cell-value positive">' + op.cell_a_upper.toFixed(2) + '</td><td class="cell-value negative">' + op.cell_a_lower.toFixed(2) + '</td><td style="color:#60a5fa;font-weight:600">' + op.net_a.toFixed(2) + '</td></tr><tr><td>B</td><td class="cell-value positive">' + op.cell_b_upper.toFixed(2) + '</td><td class="cell-value negative">' + op.cell_b_lower.toFixed(2) + '</td><td style="color:#60a5fa;font-weight:600">' + op.net_b.toFixed(2) + '</td></tr><tr><td>C</td><td class="cell-value positive">' + op.cell_c_upper.toFixed(2) + '</td><td class="cell-value negative">' + op.cell_c_lower.toFixed(2) + '</td><td style="color:#60a5fa;font-weight:600">' + op.net_c.toFixed(2) + '</td></tr></tbody></table><div style="margin-top:15px;padding:15px;background:rgba(59,130,246,0.1);border-radius:8px;text-align:center"><div style="font-size:12px;color:#9ca3af">' + t('maxOpening') + '</div><div style="font-size:28px;font-weight:bold;color:#4ade80">' + op.max_net.toFixed(2) + ' mm</div></div></div>';
+    }
+    document.getElementById('modal-content').innerHTML = '<div class="modal-section"><h3>' + t('pileInfo') + '</h3><div class="modal-grid"><div class="modal-item"><div class="label">' + t('status') + '</div><div class="value ' + sc + '">' + st + '</div></div><div class="modal-item"><div class="label">' + t('readiness') + '</div><div class="value blue">' + pile.readiness + '%</div></div><div class="modal-item"><div class="label">' + t('currentStage') + '</div><div class="value yellow">' + completedStages + ' / ' + pile.stages + '</div></div></div></div><div class="modal-section"><h3>' + t('stagesProgress') + '</h3>' + stagesHtml + '</div>' + oh;
+    document.getElementById('pile-modal').classList.add('active');
+}
+function closeModal() { document.getElementById('pile-modal').classList.remove('active'); }
+document.getElementById('pile-modal').addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+function switchToPage(pageId) {
+    if (charts.areaProgress) { charts.areaProgress.destroy(); charts.areaProgress = null; }
+    if (charts.statusPie) { charts.statusPie.destroy(); charts.statusPie = null; }
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-page="' + pageId + '"]').classList.add('active');
+    document.getElementById(pageId).classList.add('active');
+    if (pageId === 'overview' && pilesData.length) {
+        const stats = { total: pilesData.length, complete: pilesData.filter(p => p.status === 'Complete').length, ongoing: pilesData.filter(p => p.status === 'Ongoing').length, notStarted: pilesData.filter(p => p.status === 'Not Started').length, avgReadiness: Math.round(pilesData.reduce((s, p) => s + p.readiness, 0) / pilesData.length) };
+        renderOverview(stats);
+    }
+}
+document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', () => switchToPage(tab.dataset.page)));
+updateTranslations();
+loadData();
+</script>
+</body>
+</html>
