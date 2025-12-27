@@ -8,38 +8,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a1628; color: #e0e6ed; min-height: 100vh; }
-        
-        /* Login Styles */
-        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .login-overlay.hidden { display: none; }
-        .login-box { background: linear-gradient(135deg, #1e3a5f 0%, #162d4a 100%); padding: 40px 50px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid #2d4a6f; text-align: center; max-width: 400px; width: 90%; }
-        .login-logo { margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 15px; }
-        .login-logo img { height: 55px; }
-        .login-logo .login-kasktas { background: white; padding: 8px 10px; border-radius: 8px; height: 60px; }
-        .login-logo .login-kcell { border: 2px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 8px 12px; height: 55px; }
-        .login-box h2 { color: #60a5fa; margin-bottom: 10px; font-size: 24px; }
-        .login-box > p { color: #9ca3af; margin-bottom: 25px; font-size: 14px; }
-        .login-box input { width: 100%; padding: 14px 18px; margin-bottom: 15px; border: 2px solid #2d4a6f; border-radius: 10px; background: #0a1628; color: #e0e6ed; font-size: 15px; transition: border-color 0.3s; }
-        .login-box input:focus { outline: none; border-color: #3b82f6; }
-        .login-box input::placeholder { color: #6b7280; }
-        .login-box button[type="submit"] { width: 100%; padding: 14px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
-        .login-box button[type="submit"]:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59,130,246,0.4); }
-        .login-error { color: #f87171; margin-top: 15px; font-size: 13px; display: none; }
-        .login-error.show { display: block; }
-        .login-lang { margin-top: 20px; display: flex; justify-content: center; gap: 8px; }
-        .login-lang-btn { padding: 6px 12px; background: transparent; border: 1px solid #2d4a6f; color: #9ca3af; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.3s; }
-        .login-lang-btn:hover, .login-lang-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
-        .main-content { display: none; }
-        .main-content.visible { display: block; }
-        
-        /* Header Styles */
         .header { background: linear-gradient(135deg, #1a365d 0%, #2d5a87 100%); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); flex-wrap: wrap; gap: 15px; }
-        .header-left { display: flex; align-items: center; gap: 30px; }
-        .header-logos { display: flex; align-items: center; gap: 15px; }
-        .company-logo { height: 55px; width: auto; border-radius: 8px; background: white; padding: 5px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        .kcell-logo { height: 55px; width: auto; object-fit: contain; padding: 6px 12px; background: transparent; border: 2px solid rgba(255,255,255,0.5); border-radius: 8px; box-shadow: none; }
-        .header-titles { display: flex; flex-direction: column; }
-        .developer-info { font-size: 13px; color: #4ade80; margin-top: 5px; font-weight: 500; }
         .header-left h1 { font-size: 28px; font-weight: 600; }
         .header-left .subtitle { font-size: 14px; opacity: 0.8; margin-top: 5px; }
         .header-right { display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
@@ -246,47 +215,19 @@
         .stage-item .info { flex: 1; }
         .stage-item .name { font-size: 13px; font-weight: 500; }
         .stage-item .dates { font-size: 11px; color: #9ca3af; }
+        .pile-load-info { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 10px 12px; margin: 10px 0; display: flex; flex-wrap: wrap; gap: 12px; }
+        .load-item { display: flex; align-items: center; gap: 6px; }
+        .load-label { font-size: 11px; color: #9ca3af; }
+        .load-value { font-size: 13px; font-weight: 600; color: #60a5fa; }
         @media (max-width: 768px) { .header { padding: 15px 20px; } .nav-tabs { padding: 0 15px; } .content { padding: 20px 15px; } .gantt-pile-left, .gantt-work-left, .gantt-header-left { width: 180px; min-width: 180px; } .modal-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
-    <div class="login-overlay" id="login-overlay">
-        <div class="login-box">
-            <div class="login-logo">
-                <img src="kasktas_logo.png" alt="Kasktaş" class="login-kasktas">
-                <img src="K_CELL_Logo.png" alt="K-CELL" class="login-kcell">
-            </div>
-            <h2 id="login-title">🔐 Авторизация</h2>
-            <p id="login-subtitle">Лахта Центр - Мониторинг тестовых свай</p>
-            <form onsubmit="return checkLogin(event)">
-                <input type="text" id="login-username" placeholder="Логин" required>
-                <input type="password" id="login-password" placeholder="Пароль" required>
-                <button type="submit" id="login-btn">Войти</button>
-            </form>
-            <div class="login-error" id="login-error">Неверный логин или пароль</div>
-            <div class="login-lang">
-                <button class="login-lang-btn active" onclick="setLoginLang('ru')">RU</button>
-                <button class="login-lang-btn" onclick="setLoginLang('en')">EN</button>
-                <button class="login-lang-btn" onclick="setLoginLang('tr')">TR</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Main Content (hidden until login) -->
-    <div class="main-content" id="main-content">
     <div class="header">
         <div class="header-left">
-            <div class="header-titles">
-                <h1 id="main-title">🏗️ Лахта Центр - Мониторинг тестовых свай</h1>
-                <div class="subtitle" id="main-subtitle">Многофункциональные комплексы Лахта Центр 2 и Лахта Центр 3</div>
-                <div class="developer-info" id="developer-info" data-i18n="developer">Разработчик: Кунаров Дамир</div>
-                <div class="last-update" id="last-update"></div>
-            </div>
-            <div class="header-logos">
-                <img src="kasktas_logo.png" alt="Kasktaş" class="company-logo" title="Kasktaş">
-                <img src="K_CELL_Logo.png" alt="K-CELL" class="company-logo kcell-logo" title="K-CELL Geotechnical Department">
-            </div>
+            <h1 id="main-title">🏗️ Лахта Центр - Мониторинг тестовых свай</h1>
+            <div class="subtitle" id="main-subtitle">Многофункциональные комплексы Лахта Центр 2 и Лахта Центр 3</div>
+            <div class="last-update" id="last-update"></div>
         </div>
         <div class="header-right">
             <div class="refresh-panel">
@@ -349,12 +290,11 @@
     </div>
     <div class="modal-overlay" id="pile-modal"><div class="modal"><div class="modal-header"><h2 id="modal-title"></h2><button class="modal-close" onclick="closeModal()">×</button></div><div id="modal-content"></div></div></div>
     <div class="gantt-tooltip" id="gantt-tooltip"></div>
-    </div><!-- End main-content -->
 <script>
 const translations = {
-    ru: { mainTitle: "🏗️ Лахта Центр - Мониторинг тестовых свай", mainSubtitle: "Многофункциональные комплексы Лахта Центр 2 и Лахта Центр 3", developer: "Разработчик: Кунаров Дамир", totalPiles: "Всего свай", overallProgress: "Общий прогресс", completed: "Завершено", tabOverview: "📊 Обзор", tabLakhta2: "🏢 Лахта 2", tabLakhta3: "🏢 Лахта 3", tabStilobat: "🏛️ Стилобат", tabEnergo: "⚡ Энерго Центр", tabOpening: "📐 Раскрытие ячеек", tabSchedule: "📅 График работ", tabMap: "🗺️ 2D Карта", loading: "Загрузка данных...", totalTestPiles: "Всего тестовых свай", inProgress: "В процессе", notStarted: "Не начато", planned: "Запланировано", progressByArea: "📈 Прогресс по участкам", statusDistribution: "🥧 Распределение статусов", projectAreas: "🏗️ Участки проекта", total: "Всего", readiness: "готовность", testPiles: "Тестовые сваи", stage: "Этап", cell: "Ячейка", notStartedStatus: "Не начато", inProgressStatus: "в процессе", days: "дн.", current: "(текущий)", mapTitle: "🗺️ 2D Визуализация", tower: "Башня", stilobatAndEnergo: "Стилобат и Энерго Центр", dataLoaded: "Данные загружены", errorLoading: "Ошибка загрузки", chartCompleted: "Завершено", chartInProgress: "В процессе", chartNotStarted: "Не начато", readinessPercent: "Готовность %", scheduleTitle: "📅 График работ по сваям", filterAll: "Все", filterArea: "Участок", workType: "Вид работ", startDate: "Начало", endDate: "Окончание", duration: "Срок", status: "Статус", worksCompleted: "выполнено", openingTitle: "📐 Раскрытие ячеек", maxOpening: "Макс раскрытие", netOpening: "Net Opening", currentStage: "Текущий этап", pileInfo: "Информация о свае", cellData: "Данные ячеек", noOpeningData: "Нет данных", clickPileInfo: "Нажмите на сваю для просмотра", today: "Сегодня", piles: "свай", upperLevel: "Верхний", lowerLevel: "Нижний", sensor: "Датчик", stagesProgress: "Прогресс этапов", area: "Зона", type: "Тип" },
-    en: { mainTitle: "🏗️ Lakhta Center - Test Piles Monitoring", mainSubtitle: "Multifunctional complexes Lakhta Center 2 and Lakhta Center 3", developer: "Developer: Kunarov Damir", totalPiles: "Total Piles", overallProgress: "Overall Progress", completed: "Completed", tabOverview: "📊 Overview", tabLakhta2: "🏢 Lakhta 2", tabLakhta3: "🏢 Lakhta 3", tabStilobat: "🏛️ Stilobat", tabEnergo: "⚡ Energy Center", tabOpening: "📐 Jack Opening", tabSchedule: "📅 Work Schedule", tabMap: "🗺️ 2D Map", loading: "Loading data...", totalTestPiles: "Total Test Piles", inProgress: "In Progress", notStarted: "Not Started", planned: "Planned", progressByArea: "📈 Progress by Area", statusDistribution: "🥧 Status Distribution", projectAreas: "🏗️ Project Areas", total: "Total", readiness: "readiness", testPiles: "Test Piles", stage: "Stage", cell: "Cell", notStartedStatus: "Not Started", inProgressStatus: "in progress", days: "days", current: "(current)", mapTitle: "🗺️ 2D Visualization", tower: "Tower", stilobatAndEnergo: "Stilobat and Energy Center", dataLoaded: "Data loaded", errorLoading: "Error loading", chartCompleted: "Completed", chartInProgress: "In Progress", chartNotStarted: "Not Started", readinessPercent: "Readiness %", scheduleTitle: "📅 Pile Work Schedule", filterAll: "All", filterArea: "Area", workType: "Work Type", startDate: "Start", endDate: "End", duration: "Duration", status: "Status", worksCompleted: "completed", openingTitle: "📐 Jack Opening Data", maxOpening: "Max Opening", netOpening: "Net Opening", currentStage: "Current Stage", pileInfo: "Pile Information", cellData: "Cell Data", noOpeningData: "No data", clickPileInfo: "Click on pile to view info", today: "Today", piles: "piles", upperLevel: "Upper", lowerLevel: "Lower", sensor: "Sensor", stagesProgress: "Stages Progress", area: "Area", type: "Type" },
-    tr: { mainTitle: "🏗️ Lakhta Merkezi - Test Kazıkları İzleme", mainSubtitle: "Çok fonksiyonlu kompleksler Lakhta Merkezi 2 ve Lakhta Merkezi 3", developer: "Geliştirici: Kunarov Damir", totalPiles: "Toplam Kazık", overallProgress: "Genel İlerleme", completed: "Tamamlandı", tabOverview: "📊 Genel Bakış", tabLakhta2: "🏢 Lakhta 2", tabLakhta3: "🏢 Lakhta 3", tabStilobat: "🏛️ Stilobat", tabEnergo: "⚡ Enerji Merkezi", tabOpening: "📐 Hücre Açılması", tabSchedule: "📅 İş Programı", tabMap: "🗺️ 2D Harita", loading: "Veriler yükleniyor...", totalTestPiles: "Toplam Test Kazıkları", inProgress: "Devam Ediyor", notStarted: "Başlamadı", planned: "Planlandı", progressByArea: "📈 Alana Göre İlerleme", statusDistribution: "🥧 Durum Dağılımı", projectAreas: "🏗️ Proje Alanları", total: "Toplam", readiness: "hazırlık", testPiles: "Test Kazıkları", stage: "Aşama", cell: "Hücre", notStartedStatus: "Başlamadı", inProgressStatus: "devam ediyor", days: "gün", current: "(mevcut)", mapTitle: "🗺️ 2D Görselleştirme", tower: "Kule", stilobatAndEnergo: "Stilobat ve Enerji Merkezi", dataLoaded: "Veriler yüklendi", errorLoading: "Yükleme hatası", chartCompleted: "Tamamlandı", chartInProgress: "Devam Ediyor", chartNotStarted: "Başlamadı", readinessPercent: "Hazırlık %", scheduleTitle: "📅 Kazık İş Programı", filterAll: "Tümü", filterArea: "Alan", workType: "İş Türü", startDate: "Başlangıç", endDate: "Bitiş", duration: "Süre", status: "Durum", worksCompleted: "tamamlandı", openingTitle: "📐 Hücre Açılması Verileri", maxOpening: "Maks Açılma", netOpening: "Net Açılma", currentStage: "Mevcut Aşama", pileInfo: "Kazık Bilgisi", cellData: "Hücre Verileri", noOpeningData: "Veri yok", clickPileInfo: "Bilgi için kazığa tıklayın", today: "Bugün", piles: "kazık", upperLevel: "Üst", lowerLevel: "Alt", sensor: "Sensör", stagesProgress: "Aşama İlerlemesi", area: "Alan", type: "Tip" }
+    ru: { mainTitle: "🏗️ Лахта Центр - Мониторинг тестовых свай", mainSubtitle: "Многофункциональные комплексы Лахта Центр 2 и Лахта Центр 3", totalPiles: "Всего свай", overallProgress: "Общий прогресс", completed: "Завершено", tabOverview: "📊 Обзор", tabLakhta2: "🏢 Лахта 2", tabLakhta3: "🏢 Лахта 3", tabStilobat: "🏛️ Стилобат", tabEnergo: "⚡ Энерго Центр", tabOpening: "📐 Раскрытие ячеек", tabSchedule: "📅 График работ", tabMap: "🗺️ 2D Карта", loading: "Загрузка данных...", totalTestPiles: "Всего тестовых свай", inProgress: "В процессе", notStarted: "Не начато", planned: "Запланировано", progressByArea: "📈 Прогресс по участкам", statusDistribution: "🥧 Распределение статусов", projectAreas: "🏗️ Участки проекта", total: "Всего", readiness: "готовность", testPiles: "Тестовые сваи", stage: "Этап", cell: "Ячейка", notStartedStatus: "Не начато", inProgressStatus: "в процессе", days: "дн.", current: "(текущий)", mapTitle: "🗺️ 2D Визуализация", tower: "Башня", stilobatAndEnergo: "Стилобат и Энерго Центр", dataLoaded: "Данные загружены", errorLoading: "Ошибка загрузки", chartCompleted: "Завершено", chartInProgress: "В процессе", chartNotStarted: "Не начато", readinessPercent: "Готовность %", scheduleTitle: "📅 График работ по сваям", filterAll: "Все", filterArea: "Участок", workType: "Вид работ", startDate: "Начало", endDate: "Окончание", duration: "Срок", status: "Статус", worksCompleted: "выполнено", openingTitle: "📐 Раскрытие ячеек", maxOpening: "Макс раскрытие", netOpening: "Net Opening", currentStage: "Текущий этап", pileInfo: "Информация о свае", cellData: "Данные ячеек", noOpeningData: "Нет данных", clickPileInfo: "Нажмите на сваю для просмотра", today: "Сегодня", piles: "свай", upperLevel: "Верхний", lowerLevel: "Нижний", sensor: "Датчик", stagesProgress: "Прогресс этапов", area: "Зона", type: "Тип", currentLoad: "Нагрузка", currentStep: "Ступень", daysOnStep: "Дней на ступени", tons: "тс", step: "ступ." },
+    en: { mainTitle: "🏗️ Lakhta Center - Test Piles Monitoring", mainSubtitle: "Multifunctional complexes Lakhta Center 2 and Lakhta Center 3", totalPiles: "Total Piles", overallProgress: "Overall Progress", completed: "Completed", tabOverview: "📊 Overview", tabLakhta2: "🏢 Lakhta 2", tabLakhta3: "🏢 Lakhta 3", tabStilobat: "🏛️ Stilobat", tabEnergo: "⚡ Energy Center", tabOpening: "📐 Jack Opening", tabSchedule: "📅 Work Schedule", tabMap: "🗺️ 2D Map", loading: "Loading data...", totalTestPiles: "Total Test Piles", inProgress: "In Progress", notStarted: "Not Started", planned: "Planned", progressByArea: "📈 Progress by Area", statusDistribution: "🥧 Status Distribution", projectAreas: "🏗️ Project Areas", total: "Total", readiness: "readiness", testPiles: "Test Piles", stage: "Stage", cell: "Cell", notStartedStatus: "Not Started", inProgressStatus: "in progress", days: "days", current: "(current)", mapTitle: "🗺️ 2D Visualization", tower: "Tower", stilobatAndEnergo: "Stilobat and Energy Center", dataLoaded: "Data loaded", errorLoading: "Error loading", chartCompleted: "Completed", chartInProgress: "In Progress", chartNotStarted: "Not Started", readinessPercent: "Readiness %", scheduleTitle: "📅 Pile Work Schedule", filterAll: "All", filterArea: "Area", workType: "Work Type", startDate: "Start", endDate: "End", duration: "Duration", status: "Status", worksCompleted: "completed", openingTitle: "📐 Jack Opening Data", maxOpening: "Max Opening", netOpening: "Net Opening", currentStage: "Current Stage", pileInfo: "Pile Information", cellData: "Cell Data", noOpeningData: "No data", clickPileInfo: "Click on pile to view info", today: "Today", piles: "piles", upperLevel: "Upper", lowerLevel: "Lower", sensor: "Sensor", stagesProgress: "Stages Progress", area: "Area", type: "Type", currentLoad: "Load", currentStep: "Step", daysOnStep: "Days on Step", tons: "tf", step: "step" },
+    tr: { mainTitle: "🏗️ Lakhta Merkezi - Test Kazıkları İzleme", mainSubtitle: "Çok fonksiyonlu kompleksler Lakhta Merkezi 2 ve Lakhta Merkezi 3", totalPiles: "Toplam Kazık", overallProgress: "Genel İlerleme", completed: "Tamamlandı", tabOverview: "📊 Genel Bakış", tabLakhta2: "🏢 Lakhta 2", tabLakhta3: "🏢 Lakhta 3", tabStilobat: "🏛️ Stilobat", tabEnergo: "⚡ Enerji Merkezi", tabOpening: "📐 Hücre Açılması", tabSchedule: "📅 İş Programı", tabMap: "🗺️ 2D Harita", loading: "Veriler yükleniyor...", totalTestPiles: "Toplam Test Kazıkları", inProgress: "Devam Ediyor", notStarted: "Başlamadı", planned: "Planlandı", progressByArea: "📈 Alana Göre İlerleme", statusDistribution: "🥧 Durum Dağılımı", projectAreas: "🏗️ Proje Alanları", total: "Toplam", readiness: "hazırlık", testPiles: "Test Kazıkları", stage: "Aşama", cell: "Hücre", notStartedStatus: "Başlamadı", inProgressStatus: "devam ediyor", days: "gün", current: "(mevcut)", mapTitle: "🗺️ 2D Görselleştirme", tower: "Kule", stilobatAndEnergo: "Stilobat ve Enerji Merkezi", dataLoaded: "Veriler yüklendi", errorLoading: "Yükleme hatası", chartCompleted: "Tamamlandı", chartInProgress: "Devam Ediyor", chartNotStarted: "Başlamadı", readinessPercent: "Hazırlık %", scheduleTitle: "📅 Kazık İş Programı", filterAll: "Tümü", filterArea: "Alan", workType: "İş Türü", startDate: "Başlangıç", endDate: "Bitiş", duration: "Süre", status: "Durum", worksCompleted: "tamamlandı", openingTitle: "📐 Hücre Açılması Verileri", maxOpening: "Maks Açılma", netOpening: "Net Açılma", currentStage: "Mevcut Aşama", pileInfo: "Kazık Bilgisi", cellData: "Hücre Verileri", noOpeningData: "Veri yok", clickPileInfo: "Bilgi için kazığa tıklayın", today: "Bugün", piles: "kazık", upperLevel: "Üst", lowerLevel: "Alt", sensor: "Sensör", stagesProgress: "Aşama İlerlemesi", area: "Alan", type: "Tip", currentLoad: "Yük", currentStep: "Adım", daysOnStep: "Adımda Gün", tons: "tf", step: "adım" }
 };
 const workTranslations = {
     "Испытания": { en: "Testing", tr: "Test" },
@@ -472,7 +412,7 @@ async function loadData() {
     try {
         const [pilesRes, worksRes, openingRes] = await Promise.all([fetch(DATA_URL), fetch(WORKS_URL).catch(() => null), fetch(OPENING_URL).catch(() => null)]);
         if (!pilesRes.ok) throw new Error('Google Sheets data not found');
-        pilesData = parseCSV(await pilesRes.text()).map(r => ({ id: r.Pile_ID, area: r.Area, type: r.Type, status: r.Status, readiness: parseInt(r['Readiness_%']) || 0, stages: parseInt(r.Total_Stages) || 2, stage1_start: r.Stage1_Start, stage1_end: r.Stage1_End, stage2_start: r.Stage2_Start, stage2_end: r.Stage2_End, stage3_start: r.Stage3_Start, stage3_end: r.Stage3_End })).filter(p => p.id);
+        pilesData = parseCSV(await pilesRes.text()).map(r => ({ id: r.Pile_ID, area: r.Area, type: r.Type, status: r.Status, readiness: parseInt(r['Readiness_%']) || parseInt(r['Readiness_Percent']) || 0, stages: parseInt(r.Total_Stages) || 2, currentLoad: parseFloat(r.Current_Load) || null, currentStep: parseInt(r.Current_Step) || null, daysOnStep: parseInt(r.Days_On_Step) || null, stage1_start: r.Stage1_Start, stage1_end: r.Stage1_End, stage2_start: r.Stage2_Start, stage2_end: r.Stage2_End, stage3_start: r.Stage3_Start, stage3_end: r.Stage3_End })).filter(p => p.id);
         if (worksRes?.ok) worksData = parseCSV(await worksRes.text()).map(r => ({ pile_id: r.Pile_ID, area: r.Area, pile_type: r.Pile_Type, work_type: r.Work_Type, start_date: r.Start_Date, end_date: r.End_Date, duration: parseInt(r.Duration_Days) || 0, status: r.Status || 'Planned' })).filter(w => w.pile_id && w.work_type);
         if (openingRes?.ok) openingData = parseCSV(await openingRes.text()).map(r => ({ pile_id: r.Pile_ID, area: r.Area, type: r.Type, current_stage: parseInt(r.Current_Stage) || 1, total_stages: parseInt(r.Total_Stages) || 2, cell_number: parseInt(r.Cell_Number) || 1, level_upper: r.Level_Upper, level_lower: r.Level_Lower, cell_a_upper: parseFloat(r.Cell_A_Upper) || 0, cell_b_upper: parseFloat(r.Cell_B_Upper) || 0, cell_c_upper: parseFloat(r.Cell_C_Upper) || 0, cell_a_lower: parseFloat(r.Cell_A_Lower) || 0, cell_b_lower: parseFloat(r.Cell_B_Lower) || 0, cell_c_lower: parseFloat(r.Cell_C_Lower) || 0, net_a: parseFloat(r.Net_Opening_A) || 0, net_b: parseFloat(r.Net_Opening_B) || 0, net_c: parseFloat(r.Net_Opening_C) || 0, max_net: parseFloat(r.Max_Net_Opening) || 0 })).filter(o => o.pile_id);
         if (!pilesData.length) throw new Error('No data');
@@ -508,6 +448,15 @@ function renderPileCard(pile) {
     const sc = pile.status === 'Complete' ? 'complete' : pile.status === 'Ongoing' ? 'ongoing' : 'not-started';
     const st = pile.status === 'Complete' ? t('completed') : pile.status === 'Ongoing' ? t('inProgress') : t('notStarted');
     const pc = pile.readiness === 100 ? '#4ade80' : pile.readiness > 50 ? '#facc15' : '#f87171';
+    // Load and step info for Ongoing piles
+    let loadInfo = '';
+    if (pile.status === 'Ongoing' && (pile.currentLoad || pile.currentStep)) {
+        loadInfo = '<div class="pile-load-info">';
+        if (pile.currentLoad) loadInfo += '<div class="load-item"><span class="load-label">⚡ ' + t('currentLoad') + ':</span><span class="load-value">' + pile.currentLoad + ' ' + t('tons') + '</span></div>';
+        if (pile.currentStep) loadInfo += '<div class="load-item"><span class="load-label">📍 ' + t('currentStep') + ':</span><span class="load-value">' + pile.currentStep + ' ' + t('step') + '</span></div>';
+        if (pile.daysOnStep) loadInfo += '<div class="load-item"><span class="load-label">⏱️ ' + t('daysOnStep') + ':</span><span class="load-value">' + pile.daysOnStep + ' ' + t('days') + '</span></div>';
+        loadInfo += '</div>';
+    }
     let stages = '';
     for (let i = 1; i <= pile.stages; i++) {
         const start = pile['stage' + i + '_start'], end = pile['stage' + i + '_end'];
@@ -515,7 +464,7 @@ function renderPileCard(pile) {
         if (start) { if (end) { ss = 'complete'; dates = formatDate(start) + ' - ' + formatDate(end); dur = calcDuration(start, end); } else { ss = 'ongoing'; dates = formatDate(start) + ' - ' + t('inProgressStatus'); dur = calcDuration(start, new Date().toISOString().split('T')[0]) + ' ' + t('current'); } }
         stages += '<div class="stage"><div class="stage-indicator ' + ss + '"></div><div class="stage-info"><div class="stage-name">' + t('stage') + ' ' + i + ' (' + t('cell') + ' ' + i + ')</div><div class="stage-dates">' + dates + '</div></div>' + (dur ? '<div class="stage-duration">' + dur + '</div>' : '') + '</div>';
     }
-    return '<div class="pile-card"><div class="pile-header"><div class="pile-name">' + pile.id + '</div><div class="pile-status ' + sc + '">' + st + '</div></div><div class="pile-progress"><div class="bar"><div class="fill" style="width:' + pile.readiness + '%;background:' + pc + '"></div></div><div class="text"><span>' + t('readiness') + '</span><span>' + pile.readiness + '%</span></div></div>' + stages + '</div>';
+    return '<div class="pile-card"><div class="pile-header"><div class="pile-name">' + pile.id + '</div><div class="pile-status ' + sc + '">' + st + '</div></div><div class="pile-progress"><div class="bar"><div class="fill" style="width:' + pile.readiness + '%;background:' + pc + '"></div></div><div class="text"><span>' + t('readiness') + '</span><span>' + pile.readiness + '%</span></div></div>' + loadInfo + stages + '</div>';
 }
 function parseDate(d) { if (!d) return null; if (d.includes(".")) { const p = d.split("."); if (p.length === 3) return new Date(p[2], p[1]-1, p[0]); } return new Date(d); }
 function formatDate(d) { if (!d) return ''; try { const dt = parseDate(d); if (!dt || isNaN(dt)) return d; return dt.toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : currentLang === 'tr' ? 'tr-TR' : 'en-US', { day: '2-digit', month: '2-digit', year: '2-digit' }); } catch { return d; } }
@@ -667,6 +616,15 @@ function showPileModal(pile) {
     }
     if (completedStages === pile.stages) currentStageNum = pile.stages;
     else if (currentStageNum === 0 && completedStages > 0) currentStageNum = completedStages;
+    // Load info section
+    let loadHtml = '';
+    if (pile.status === 'Ongoing' && (pile.currentLoad || pile.currentStep)) {
+        loadHtml = '<div class="modal-section"><h3>⚡ ' + t('currentLoad') + ' / ' + t('currentStep') + '</h3><div class="modal-grid">';
+        if (pile.currentLoad) loadHtml += '<div class="modal-item"><div class="label">' + t('currentLoad') + '</div><div class="value blue">' + pile.currentLoad + ' ' + t('tons') + '</div></div>';
+        if (pile.currentStep) loadHtml += '<div class="modal-item"><div class="label">' + t('currentStep') + '</div><div class="value yellow">' + pile.currentStep + ' ' + t('step') + '</div></div>';
+        if (pile.daysOnStep) loadHtml += '<div class="modal-item"><div class="label">' + t('daysOnStep') + '</div><div class="value">' + pile.daysOnStep + ' ' + t('days') + '</div></div>';
+        loadHtml += '</div></div>';
+    }
     // Генерация списка этапов
     let stagesHtml = '<div class="stages-list">';
     for (let i = 1; i <= pile.stages; i++) {
@@ -682,7 +640,7 @@ function showPileModal(pile) {
     if (op) {
         oh = '<div class="modal-section"><h3>' + t('cellData') + ' (' + t('cell') + ' ' + op.cell_number + ')</h3><table class="cell-table"><thead><tr><th>' + t('sensor') + '</th><th>' + op.level_upper + '</th><th>' + op.level_lower + '</th><th>' + t('netOpening') + '</th></tr></thead><tbody><tr><td>A</td><td class="cell-value positive">' + op.cell_a_upper.toFixed(2) + '</td><td class="cell-value negative">' + op.cell_a_lower.toFixed(2) + '</td><td style="color:#60a5fa;font-weight:600">' + op.net_a.toFixed(2) + '</td></tr><tr><td>B</td><td class="cell-value positive">' + op.cell_b_upper.toFixed(2) + '</td><td class="cell-value negative">' + op.cell_b_lower.toFixed(2) + '</td><td style="color:#60a5fa;font-weight:600">' + op.net_b.toFixed(2) + '</td></tr><tr><td>C</td><td class="cell-value positive">' + op.cell_c_upper.toFixed(2) + '</td><td class="cell-value negative">' + op.cell_c_lower.toFixed(2) + '</td><td style="color:#60a5fa;font-weight:600">' + op.net_c.toFixed(2) + '</td></tr></tbody></table><div style="margin-top:15px;padding:15px;background:rgba(59,130,246,0.1);border-radius:8px;text-align:center"><div style="font-size:12px;color:#9ca3af">' + t('maxOpening') + '</div><div style="font-size:28px;font-weight:bold;color:#4ade80">' + op.max_net.toFixed(2) + ' mm</div></div></div>';
     }
-    document.getElementById('modal-content').innerHTML = '<div class="modal-section"><h3>' + t('pileInfo') + '</h3><div class="modal-grid"><div class="modal-item"><div class="label">' + t('status') + '</div><div class="value ' + sc + '">' + st + '</div></div><div class="modal-item"><div class="label">' + t('readiness') + '</div><div class="value blue">' + pile.readiness + '%</div></div><div class="modal-item"><div class="label">' + t('currentStage') + '</div><div class="value yellow">' + completedStages + ' / ' + pile.stages + '</div></div></div></div><div class="modal-section"><h3>' + t('stagesProgress') + '</h3>' + stagesHtml + '</div>' + oh;
+    document.getElementById('modal-content').innerHTML = '<div class="modal-section"><h3>' + t('pileInfo') + '</h3><div class="modal-grid"><div class="modal-item"><div class="label">' + t('status') + '</div><div class="value ' + sc + '">' + st + '</div></div><div class="modal-item"><div class="label">' + t('readiness') + '</div><div class="value blue">' + pile.readiness + '%</div></div><div class="modal-item"><div class="label">' + t('currentStage') + '</div><div class="value yellow">' + completedStages + ' / ' + pile.stages + '</div></div></div></div>' + loadHtml + '<div class="modal-section"><h3>' + t('stagesProgress') + '</h3>' + stagesHtml + '</div>' + oh;
     document.getElementById('pile-modal').classList.add('active');
 }
 function closeModal() { document.getElementById('pile-modal').classList.remove('active'); }
@@ -701,79 +659,9 @@ function switchToPage(pageId) {
     }
 }
 document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', () => switchToPage(tab.dataset.page)));
-
-// ==================== LOGIN SYSTEM ====================
-const loginTranslations = {
-    ru: { title: '🔐 Авторизация', subtitle: 'Лахта Центр - Мониторинг тестовых свай', button: 'Войти', error: 'Неверный логин или пароль', userPlaceholder: 'Логин', passPlaceholder: 'Пароль' },
-    en: { title: '🔐 Authorization', subtitle: 'Lakhta Center - Test Piles Monitoring', button: 'Login', error: 'Invalid username or password', userPlaceholder: 'Username', passPlaceholder: 'Password' },
-    tr: { title: '🔐 Yetkilendirme', subtitle: 'Lakhta Merkezi - Test Kazıkları İzleme', button: 'Giriş', error: 'Geçersiz kullanıcı adı veya şifre', userPlaceholder: 'Kullanıcı adı', passPlaceholder: 'Şifre' }
-};
-
-// CREDENTIALS - измените на свои логин и пароль
-const VALID_USERS = [
-    { username: 'admin', password: 'admin' },
-];
-
-let loginLang = 'ru';
-
-function setLoginLang(lang) {
-    loginLang = lang;
-    const t = loginTranslations[lang];
-    document.getElementById('login-title').textContent = t.title;
-    document.getElementById('login-subtitle').textContent = t.subtitle;
-    document.getElementById('login-btn').textContent = t.button;
-    document.getElementById('login-error').textContent = t.error;
-    document.getElementById('login-username').placeholder = t.userPlaceholder;
-    document.getElementById('login-password').placeholder = t.passPlaceholder;
-    document.querySelectorAll('.login-lang-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-}
-
-function checkLogin(e) {
-    e.preventDefault();
-    const username = document.getElementById('login-username').value.trim().toLowerCase();
-    const password = document.getElementById('login-password').value;
-    
-    const validUser = VALID_USERS.find(u => u.username.toLowerCase() === username && u.password === password);
-    
-    if (validUser) {
-        // Успешный вход
-        document.getElementById('login-overlay').classList.add('hidden');
-        document.getElementById('main-content').classList.add('visible');
-        sessionStorage.setItem('isLoggedIn', 'true');
-        sessionStorage.setItem('loginUser', username);
-        // Инициализация дашборда после входа
-        updateTranslations();
-        loadData();
-        initAutoRefresh();
-    } else {
-        // Неверные данные
-        document.getElementById('login-error').classList.add('show');
-        document.getElementById('login-password').value = '';
-        setTimeout(() => document.getElementById('login-error').classList.remove('show'), 3000);
-    }
-    return false;
-}
-
-// Проверка сессии при загрузке
-function checkSession() {
-    if (sessionStorage.getItem('isLoggedIn') === 'true') {
-        document.getElementById('login-overlay').classList.add('hidden');
-        document.getElementById('main-content').classList.add('visible');
-        updateTranslations();
-        loadData();
-        initAutoRefresh();
-    }
-}
-
-// Функция выхода (можно добавить кнопку)
-function logout() {
-    sessionStorage.removeItem('isLoggedIn');
-    sessionStorage.removeItem('loginUser');
-    location.reload();
-}
-
-checkSession();
+updateTranslations();
+loadData();
+initAutoRefresh();
 </script>
 </body>
 </html>
